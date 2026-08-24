@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>텍스트 발헤임 (절차적 오픈월드)</title>
+  <title>텍스트 발헤임 (울창한 숲 생태계)</title>
   <style>
     * { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a2f1c; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; }
     #game-canvas { width: 100%; height: 100%; display: block; }
     
-    #hud { position: absolute; top: env(safe-area-inset-top, 12px); left: 12px; color: #fff; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 20; font-size: 11px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+    #hud { position: absolute; top: env(safe-area-inset-top, 12px); left: 12px; color: #fff; display: flex; flex-direction: column; gap: 4px; pointer-events: none; z-index: 20; font-size: 11px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); }
     .bar-bg { width: 140px; height: 10px; background: rgba(0,0,0,0.7); border: 1px solid #444; border-radius: 3px; overflow: hidden; }
     .bar-hp { height: 100%; background: #e74c3c; width: 100%; transition: width 0.1s; }
     .bar-sta { height: 100%; background: #f1c40f; width: 100%; }
@@ -36,7 +36,6 @@
     #btn-fire { bottom: 205px; right: 60px; width: 40px; height: 40px; background: rgba(230, 126, 34, 0.8); border: 2px solid #e67e22; }
 
     #flash-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: white; opacity: 0; pointer-events: none; transition: opacity 0.05s ease-out; z-index: 22; }
-
     .modal-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 15, 20, 0.95); padding: 25px 35px; text-align: center; color: #fff; display: none; border-radius: 10px; z-index: 50; }
     #gameover-screen { border: 2px solid #e74c3c; box-shadow: 0 0 40px rgba(231,76,60,0.5); }
     #victory-screen { border: 2px solid #f1c40f; box-shadow: 0 0 40px rgba(241,196,15,0.4); }
@@ -81,39 +80,24 @@
     <p style="color: #bbb; font-size: 13px;">발할라의 신들이 당신을 거부했습니다.</p>
     <button onclick="location.reload()" style="padding: 8px 20px; margin-top: 10px; background: #e74c3c; color:#fff; border:none; font-weight:bold; border-radius:4px; cursor:pointer;">다시 도전</button>
   </div>
-
   <div id="victory-screen" class="modal-screen">
     <h2 style="color: #f1c40f; margin: 0 0 10px 0;">⚔️ 발 할 라 입 성 ! ⚔️</h2>
-    <p style="color: #ddd; font-size: 13px;">사슴왕을 격파했습니다!</p>
     <button onclick="location.reload()" style="padding: 8px 20px; margin-top: 10px; background: #f1c40f; border:none; font-weight:bold; border-radius:4px; cursor:pointer;">다시 플레이</button>
   </div>
 
   <canvas id="game-canvas"></canvas>
 
   <script>
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
-    const lightCanvas = document.createElement('canvas');
-    const lightCtx = lightCanvas.getContext('2d');
+    const canvas = document.getElementById('game-canvas'); const ctx = canvas.getContext('2d');
+    const lightCanvas = document.createElement('canvas'); const lightCtx = lightCanvas.getContext('2d');
 
-    function resize() {
-      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-      lightCanvas.width = window.innerWidth; lightCanvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-    resize();
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; lightCanvas.width = window.innerWidth; lightCanvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); window.addEventListener('orientationchange', () => setTimeout(resize, 200)); resize();
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
 
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-      else document.exitFullscreen();
-    }
-
-    // --- 월드 & 건축 스펙 ---
-    const WORLD_SIZE = 3000; // 거대 오픈월드 사이즈
+    const WORLD_SIZE = 3000;
     const ALTAR_POS = { x: 1500, y: 1500 };
 
-    // 벽 두께(충돌 판정) 대폭 감소, 시각적 텍스트도 얇게 변경
     const buildParts = [
       { id: 'floor', text: '[ ▤ 바닥 ]', cost: 2, collide: false, color: '#8e705b' },
       { id: 'wall', text: '[ | 벽 | ]', cost: 2, collide: true, color: '#a4b0be' },
@@ -121,79 +105,79 @@
     ];
 
     const state = {
-      worldTime: Math.PI / 2,
-      gameOver: false,
-      player: {
-        x: 1500, y: 1650, hp: 100, maxHp: 100, sta: 100, maxSta: 100,
-        speed: 2.2, weapon: 'sword', isGuarding: false, parryWindow: 0,
-        chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false
-      },
+      worldTime: Math.PI / 2, gameOver: false,
+      player: { x: 1500, y: 1650, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 2.2, weapon: 'sword', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
       joystick: { active: false, startX: 0, startY: 0, dx: 0, dy: 0 },
       keys: {}, mouse: { x: 0, y: 0, worldX: 0, worldY: 0 },
-      inventory: { trophy: 0, arrows: 80, wood: 40, stone: 0 }, 
+      inventory: { trophy: 0, arrows: 80, wood: 40, stone: 0 },
       buildMode: false, buildIdx: 1, structures: [],
       swingAnim: 0, arrows: [], particles: [], letterPickups: [], lightnings: [], campfires: [],
       altar: { x: ALTAR_POS.x, y: ALTAR_POS.y, activated: false }, boss: null,
-      
       enemies: [], resources: [], consumables: [], decorations: []
     };
 
-    // --- 절차적 생태계 생성기 (Procedural Generation) ---
+    // 🌟 군락(Cluster) 기반 초고밀도 절차적 생성
     function initWorld() {
-      // 1. 잔디 장식 (속도감을 위한 배경 파티클)
-      for(let i=0; i<1200; i++) {
+      // 1. 잔디 & 들꽃 장식 (시각적 풍요로움)
+      for(let i=0; i<3500; i++) {
         state.decorations.push({
-          text: Math.random() > 0.5 ? '.' : ',',
+          text: Math.random() > 0.9 ? '✿' : (Math.random() > 0.5 ? '.' : ','),
           x: Math.random() * WORLD_SIZE, y: Math.random() * WORLD_SIZE,
-          color: 'rgba(46, 213, 115, 0.4)'
+          color: Math.random() > 0.9 ? '#f1c40f' : 'rgba(46, 213, 115, 0.4)'
         });
       }
 
-      // 2. 나무 & 자작나무 (200개)
-      for(let i=0; i<200; i++) {
-        let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
-        if(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue; // 제단 주변 보호
-        let isBirch = Math.random() > 0.7;
-        state.resources.push({
-          text: isBirch ? '[자작나무]' : '[나무]', type: 'wood',
-          letters: isBirch ? ['ㅈ','ㅏ','ㅈ','ㅏ','ㄱ','ㄴ','ㅏ','ㅁ','ㅜ'] : ['ㄴ','ㅏ','ㅁ','ㅜ'],
-          x: rx, y: ry, hp: isBirch ? 5 : 3
-        });
-      }
-
-      // 3. 바위 (100개)
-      for(let i=0; i<100; i++) {
-        let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
-        if(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
-        state.resources.push({ text: '[바위]', type: 'stone', letters: ['ㅂ','ㅏ','ㅇ','ㅢ'], x: rx, y: ry, hp: 4 });
-      }
-
-      // 4. 멧돼지 무리 (45마리)
+      // 2. 숲(Forest) 군락지 45개 생성 -> 약 1800그루 나무
       for(let i=0; i<45; i++) {
-        let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
-        if(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 200) continue;
-        state.enemies.push({ text: '[멧돼지]', letters: ['ㅁ','ㅔ','ㅅ','ㄷ','ㅘ','ㅈ','ㅣ'], x: rx, y: ry, hp: 30, maxHp: 30, shake: 0, drop: 'trophy', roamTimer: 0, vx: 0, vy: 0 });
+        let forestX = Math.random() * WORLD_SIZE;
+        let forestY = Math.random() * WORLD_SIZE;
+        let numTrees = 30 + Math.random() * 30; // 군락 하나당 30~60그루
+        for(let j=0; j<numTrees; j++) {
+          let rx = forestX + (Math.random() - 0.5) * 450;
+          let ry = forestY + (Math.random() - 0.5) * 450;
+          if (rx < 0 || ry < 0 || rx > WORLD_SIZE || ry > WORLD_SIZE) continue;
+          if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 130) continue; // 제단 근처만 살짝 비움
+
+          let r = Math.random();
+          if(r > 0.7) state.resources.push({ text: '[🌳 참나무]', type: 'wood', letters: ['ㅊ','ㅏ','ㅁ','ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 4 });
+          else if(r > 0.4) state.resources.push({ text: '[🌲 소나무]', type: 'wood', letters: ['ㅅ','ㅗ','ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 3 });
+          else state.resources.push({ text: '[나무]', type: 'wood', letters: ['ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 3 });
+        }
       }
 
-      // 5. 채집물 (버섯, 산딸기 - 80개)
-      for(let i=0; i<80; i++) {
+      // 3. 채석장(Rock) 군락지 25개 생성 -> 약 350개 바위
+      for(let i=0; i<25; i++) {
+        let rockX = Math.random() * WORLD_SIZE; let rockY = Math.random() * WORLD_SIZE;
+        for(let j=0; j<15; j++) {
+          let rx = rockX + (Math.random() - 0.5) * 300; let ry = rockY + (Math.random() - 0.5) * 300;
+          if (rx < 0 || ry < 0 || rx > WORLD_SIZE || ry > WORLD_SIZE) continue;
+          if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 130) continue;
+          state.resources.push({ text: '[🪨 바위]', type: 'stone', letters: ['ㅂ','ㅏ','ㅇ','ㅢ'], x: rx, y: ry, hp: 5 });
+        }
+      }
+
+      // 4. 멧돼지 120마리 무작위 산포
+      for(let i=0; i<120; i++) {
         let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
-        if(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 100) continue;
+        if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
+        state.enemies.push({ text: '[🐗 멧돼지]', letters: ['ㅁ','ㅔ','ㅅ','ㄷ','ㅘ','ㅈ','ㅣ'], x: rx, y: ry, hp: 30, maxHp: 30, shake: 0, drop: 'trophy', roamTimer: 0, vx: 0, vy: 0 });
+      }
+
+      // 5. 채집물 250개
+      for(let i=0; i<250; i++) {
+        let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
+        if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 100) continue;
         let isBerry = Math.random() > 0.5;
-        state.consumables.push({ text: isBerry ? '[🍓 산딸기]' : '[🍄 빨간버섯]', type: isBerry ? 'berry' : 'mushroom', x: rx, y: ry });
+        state.consumables.push({ text: isBerry ? '[🍓 산딸기]' : '[🍄 버섯]', type: isBerry ? 'berry' : 'mushroom', x: rx, y: ry });
       }
     }
-    initWorld(); // 맵 생성 실행!
+    initWorld();
 
-    // --- 얇아진 물리 충돌 검사 ---
     function checkCollision(nx, ny, isEnemy = false) {
-      // 월드 경계선 충돌
       if(nx < 20 || ny < 20 || nx > WORLD_SIZE - 20 || ny > WORLD_SIZE - 20) return true;
-
       for (let s of state.structures) {
         if (s.part.collide === true || (s.part.collide === 'enemyOnly' && isEnemy)) {
-          // 벽 충돌 반경 대폭 감소 (기존 22 -> 12)
-          if (Math.hypot(nx - s.x, ny - s.y) < 12) return true;
+          if (Math.hypot(nx - s.x, ny - s.y) < 12) return true; // 벽 충돌 범위 최소화
         }
       }
       return false;
@@ -206,7 +190,7 @@
       });
     }
 
-    // --- 조작계 ---
+    // --- 조작계 바인딩 ---
     const joyBase = document.getElementById('joystick-base'); const joyStick = document.getElementById('joystick-stick');
     joyBase.addEventListener('touchstart', e => { const touch = e.targetTouches[0]; const rect = joyBase.getBoundingClientRect(); state.joystick.active = true; state.joystick.startX = rect.left + rect.width / 2; state.joystick.startY = rect.top + rect.height / 2; handleJoyMove(touch.clientX, touch.clientY); });
     window.addEventListener('touchmove', e => { if (!state.joystick.active) return; for (let i = 0; i < e.touches.length; i++) { if (e.touches[i].clientX < window.innerWidth / 2) { handleJoyMove(e.touches[i].clientX, e.touches[i].clientY); break; } } });
@@ -271,7 +255,6 @@
     function cycleBuildPart() {
       if (!state.buildMode) return; state.buildIdx = (state.buildIdx + 1) % buildParts.length;
       document.getElementById('build-status-text').innerText = `건축 모드: ${buildParts[state.buildIdx].text} (R키 변경)`;
-      addTextParticle(`${buildParts[state.buildIdx].text} 선택`, state.player.x, state.player.y - 30, '#9b59b6');
     }
     function getSnapTarget() {
       let targetX, targetY;
@@ -290,16 +273,15 @@
     }
 
     function buildCampfire() {
-      const p = state.player;
-      if (state.inventory.wood >= 3) { state.inventory.wood -= 3; state.campfires.push({ x: p.x, y: p.y, life: 1800 }); addTextParticle('[🔥 모닥불 설치!]', p.x, p.y - 20, '#e67e22'); }
-      else addTextParticle('[목재 3개 필요!]', p.x, p.y - 20, '#e74c3c');
+      if (state.inventory.wood >= 3) { state.inventory.wood -= 3; state.campfires.push({ x: state.player.x, y: state.player.y, life: 1800 }); addTextParticle('[🔥 모닥불 설치!]', state.player.x, state.player.y - 20, '#e67e22'); }
+      else addTextParticle('[목재 3개 필요!]', state.player.x, state.player.y - 20, '#e74c3c');
     }
 
     function checkAltarInteract() {
-      if (Math.hypot(state.player.x - state.altar.x, state.player.y - state.altar.y) < 100 && !state.altar.activated) {
+      if (Math.hypot(state.player.x - state.altar.x, state.player.y - state.altar.y) < 120 && !state.altar.activated) {
         if (state.inventory.trophy >= 2) {
           state.altar.activated = true; flashScreen(); document.getElementById('boss-hud').style.display = 'flex';
-          addTextParticle('[⚡ 에이크쉬르의 강림! ⚡]', state.altar.x, state.altar.y - 40, '#00d2d3');
+          addTextParticle('[⚡ 에이크쉬르 강림! ⚡]', state.altar.x, state.altar.y - 40, '#00d2d3');
           state.boss = { name: '[ 거 대 한 사 슴 왕 ]', x: state.altar.x, y: state.altar.y - 150, hp: 450, maxHp: 450, state: 'idle', timer: 0, shake: 0, targetX: 0, targetY: 0 };
         } else addTextParticle('[사슴 트로피 2개 필요!]', state.altar.x, state.altar.y - 20, '#ff4757');
       }
@@ -348,14 +330,15 @@
       flashScreen(); const points = [{ x: x1, y: y1 }];
       for (let i = 1; i < 7; i++) points.push({ x: x1 + (x2 - x1) * (i/7) + (Math.random() - 0.5) * 60, y: y1 + (y2 - y1) * (i/7) + (Math.random() - 0.5) * 60 });
       points.push({ x: x2, y: y2 }); state.lightnings.push({ points, life: 10 });
-      const p = state.player;
-      if (Math.hypot(p.x - x2, p.y - y2) < 70) {
-        if (p.isGuarding && p.parryWindow > 0) { addTextParticle('[!! ⚡ 벼락 패링 ⚡ !!]', p.x, p.y - 25, '#f1c40f'); if (state.boss) { state.boss.state = 'stun'; state.boss.timer = 140; } } 
-        else { p.hp -= 30; addTextParticle('[-30 감전!]', p.x, p.y - 20, '#00d2d3'); }
+      if (Math.hypot(state.player.x - x2, state.player.y - y2) < 70) {
+        if (state.player.isGuarding && state.player.parryWindow > 0) { addTextParticle('[!! ⚡ 벼락 패링 ⚡ !!]', state.player.x, state.player.y - 25, '#f1c40f'); if (state.boss) { state.boss.state = 'stun'; state.boss.timer = 140; } } 
+        else { state.player.hp -= 30; addTextParticle('[-30 감전!]', state.player.x, state.player.y - 20, '#00d2d3'); }
       }
     }
 
-    // --- 메인 틱 루프 ---
+    function addTextParticle(text, x, y, color) { state.particles.push({ text, x, y, life: 35, color }); }
+
+    // --- 메인 업데이트 루프 ---
     function update() {
       if (state.gameOver) return;
       const p = state.player; state.worldTime += 0.0008;
@@ -379,7 +362,6 @@
       if (p.isCharging) { p.chargeTimer++; p.sta = Math.max(0, p.sta - 0.08); if (p.sta <= 0) fireBow(); }
       if (p.parryWindow > 0) p.parryWindow--;
 
-      // 채집물 흡수
       for (let i = state.consumables.length - 1; i >= 0; i--) {
         const item = state.consumables[i];
         if (Math.hypot(p.x - item.x, p.y - item.y) < 35) {
@@ -389,16 +371,13 @@
         }
       }
 
-      // 적 이동
       state.enemies.forEach(en => {
-        if (en.hp <= 0) return;
-        en.roamTimer--;
+        if (en.hp <= 0) return; en.roamTimer--;
         if (en.roamTimer <= 0) { en.roamTimer = 60 + Math.random() * 90; const a = Math.random() * Math.PI * 2; en.vx = Math.cos(a) * 0.7; en.vy = Math.sin(a) * 0.7; }
         if (!checkCollision(en.x + en.vx, en.y, true)) en.x += en.vx;
         if (!checkCollision(en.x, en.y + en.vy, true)) en.y += en.vy;
       });
 
-      // 파편 흡수
       for (let i = state.letterPickups.length - 1; i >= 0; i--) {
         const lp = state.letterPickups[i]; lp.x += lp.vx; lp.y += lp.vy; lp.vx *= 0.88; lp.vy *= 0.88;
         if (lp.delayPickup > 0) lp.delayPickup--;
@@ -415,7 +394,6 @@
         lp.life--; if (lp.life <= 0) state.letterPickups.splice(i, 1);
       }
 
-      // 화살 충돌
       for (let i = state.arrows.length - 1; i >= 0; i--) {
         const arr = state.arrows[i]; arr.x += arr.vx; arr.y += arr.vy; arr.life--;
         let hit = false;
@@ -430,7 +408,6 @@
 
       state.enemies.forEach(en => { if (en.hp <= 0 && en.drop) { state.inventory.trophy++; explodeLetters(en.letters, en.x, en.y, 'boar'); addTextParticle('[트로피 획득!]', en.x, en.y - 30, '#f1c40f'); en.drop = null; } });
 
-      // 보스
       if (state.boss && state.boss.hp > 0) {
         const b = state.boss; b.timer++;
         if (b.state === 'stun') { if (b.timer >= 140) { b.state = 'idle'; b.timer = 0; } }
@@ -449,10 +426,7 @@
             let hitWall = false;
             for(let i=state.structures.length-1; i>=0; i--) {
               let s = state.structures[i];
-              if (s.part.collide && Math.hypot(s.x - b.x, s.y - b.y) < 35) {
-                s.hp -= 20; hitWall = true; addTextParticle('[-20 쾅!]', s.x, s.y-10, '#fff');
-                if(s.hp <= 0) { explodeLetters(['ㅁ','ㅗ','ㄱ','ㅈ','ㅐ'], s.x, s.y, 'wood'); state.structures.splice(i, 1); }
-              }
+              if (s.part.collide && Math.hypot(s.x - b.x, s.y - b.y) < 35) { s.hp -= 20; hitWall = true; addTextParticle('[-20 쾅!]', s.x, s.y-10, '#fff'); if(s.hp <= 0) { explodeLetters(['ㅁ','ㅗ','ㄱ','ㅈ','ㅐ'], s.x, s.y, 'wood'); state.structures.splice(i, 1); } }
             }
             if (!hitWall) { b.x += Math.cos(angle) * 7.5; b.y += Math.sin(angle) * 7.5; } else { b.state = 'idle'; b.timer = 0; }
             if (Math.hypot(p.x - b.x, p.y - b.y) < 40) { p.hp -= 20; addTextParticle('[-20 들이받힘!]', p.x, p.y - 15, '#ff4757'); b.state = 'idle'; b.timer = 0; }
@@ -470,59 +444,49 @@
       const isNight = Math.sin(state.worldTime) < -0.2; document.getElementById('time-text').innerText = isNight ? '🌙 밤 (어둠)' : '☀️ 화창한 낮';
       document.getElementById('coord-text').innerText = `${Math.floor(p.x)}, ${Math.floor(p.y)}`;
 
-      draw(camX, camY); requestAnimationFrame(update);
+      draw(p.x - canvas.width / 2, p.y - canvas.height / 2); requestAnimationFrame(update);
     }
 
-    // --- 렌더링 최적화(Culling) 처리 ---
-    function isVisible(x, y, camX, camY, padding = 100) {
-      return x > camX - padding && x < camX + canvas.width + padding && y > camY - padding && y < camY + canvas.height + padding;
-    }
+    // 🚀 화면에 보이는 것만 그리는 렌더링 최적화(Culling)
+    function isVisible(x, y, camX, camY, padding = 100) { return x > camX - padding && x < camX + canvas.width + padding && y > camY - padding && y < camY + canvas.height + padding; }
 
     function draw(camX, camY) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, canvas.width);
       grad.addColorStop(0, '#2e5d32'); grad.addColorStop(1, '#1b3b1f'); ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       ctx.save(); ctx.translate(-camX, -camY);
 
-      // 잔디 장식 렌더링 (보이는 것만)
-      state.decorations.forEach(d => {
-        if(isVisible(d.x, d.y, camX, camY, 50)) { ctx.fillStyle = d.color; ctx.font = '14px sans-serif'; ctx.fillText(d.text, d.x, d.y); }
-      });
-
-      // 건축물 바닥
+      // 1. 바닥 잔디 장식
+      state.decorations.forEach(d => { if(isVisible(d.x, d.y, camX, camY, 50)) { ctx.fillStyle = d.color; ctx.font = '14px sans-serif'; ctx.fillText(d.text, d.x, d.y); } });
+      // 2. 건축물 바닥
       ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
       state.structures.forEach(s => { if (s.part.id === 'floor' && isVisible(s.x, s.y, camX, camY)) { ctx.fillStyle = s.part.color; ctx.fillText(s.part.text, s.x, s.y); } });
 
+      // 3. 고정 오브젝트 (제단, 모닥불)
       state.campfires.forEach(c => { if(isVisible(c.x, c.y, camX, camY)) { ctx.fillStyle = '#e67e22'; ctx.fillText('[🔥 모닥불]', c.x, c.y); } });
       if(isVisible(state.altar.x, state.altar.y, camX, camY)) { ctx.fillStyle = state.altar.activated ? '#00d2d3' : '#f1c40f'; ctx.fillText(state.altar.activated ? '[⚡ 제단 ⚡]' : '[🏛️ 소환 제단]', state.altar.x, state.altar.y); }
       
+      // 4. 자연 자원 및 적
+      ctx.font = 'bold 14px sans-serif';
       state.consumables.forEach(c => { if(isVisible(c.x, c.y, camX, camY)) { ctx.fillStyle = c.type === 'mushroom' ? '#ff4757' : '#ff6b81'; ctx.fillText(c.text, c.x, c.y); } });
       state.resources.forEach(r => { if(isVisible(r.x, r.y, camX, camY)) { ctx.fillStyle = r.type === 'wood' ? '#2ed573' : '#ced6e0'; ctx.fillText(r.text, r.x, r.y); } });
       state.letterPickups.forEach(lp => { if(isVisible(lp.x, lp.y, camX, camY)) { ctx.fillStyle = lp.itemType === 'wood' ? '#2ed573' : (lp.itemType === 'stone' ? '#ced6e0' : '#ff6b81'); ctx.font = 'bold 15px monospace'; ctx.fillText(lp.char, lp.x, lp.y); } });
-      
-      // 건축물 벽/문
-      state.structures.forEach(s => {
-        if (s.part.id !== 'floor' && isVisible(s.x, s.y, camX, camY)) { 
-          ctx.fillStyle = s.part.color; let ox = s.shake > 0 ? (Math.random()-0.5)*4 : 0; if(s.shake>0) s.shake--; ctx.font = 'bold 15px sans-serif'; ctx.fillText(s.part.text, s.x + ox, s.y); 
-        }
-      });
+      state.structures.forEach(s => { if (s.part.id !== 'floor' && isVisible(s.x, s.y, camX, camY)) { ctx.fillStyle = s.part.color; let ox = s.shake > 0 ? (Math.random()-0.5)*4 : 0; if(s.shake>0) s.shake--; ctx.font = 'bold 15px sans-serif'; ctx.fillText(s.part.text, s.x + ox, s.y); } });
       state.enemies.forEach(en => { if (en.hp > 0 && isVisible(en.x, en.y, camX, camY)) { ctx.fillStyle = '#ff7675'; let ox = en.shake > 0 ? (Math.random() - 0.5) * 6 : 0; ctx.fillText(`${en.text} [${en.hp}]`, en.x + ox, en.y); } });
 
+      // 보스 및 이펙트
       if (state.boss && state.boss.hp > 0 && isVisible(state.boss.x, state.boss.y, camX, camY, 200)) { const b = state.boss; ctx.fillStyle = b.state === 'stun' ? '#f1c40f' : '#ff4757'; ctx.font = 'bold 22px sans-serif'; let ox = b.shake > 0 ? (Math.random() - 0.5) * 8 : 0; ctx.fillText(b.state === 'stun' ? '[💫기절!💫]' : b.name, b.x + ox, b.y); }
-      
       for (let i = state.lightnings.length - 1; i >= 0; i--) { const l = state.lightnings[i]; ctx.beginPath(); ctx.moveTo(l.points[0].x, l.points[0].y); for (let j = 1; j < l.points.length; j++) ctx.lineTo(l.points[j].x, l.points[j].y); ctx.strokeStyle = '#00d2d3'; ctx.lineWidth = 4; ctx.stroke(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke(); l.life--; if (l.life <= 0) state.lightnings.splice(i, 1); }
       ctx.fillStyle = '#ffffff'; state.arrows.forEach(arr => { if(isVisible(arr.x, arr.y, camX, camY)) { ctx.save(); ctx.translate(arr.x, arr.y); ctx.rotate(arr.angle); ctx.fillText(arr.isCrit ? '──▶▶' : '──▶', 0, 4); ctx.restore(); } });
 
+      // 플레이어 및 궤적
       const p = state.player;
       if (state.swingAnim > 0) { state.swingAnim--; ctx.beginPath(); ctx.arc(p.x, p.y, 80, p.facingAngle - Math.PI/3, p.facingAngle + Math.PI/3); ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; ctx.lineWidth = 5; ctx.stroke(); }
-
       ctx.fillStyle = '#70a1ff'; ctx.font = 'bold 15px sans-serif';
-      let pTag = '[나]'; if (p.isGuarding) pTag = p.parryWindow > 0 ? '[나 (패링!)]' : '[나 (방어)]';
-      if (p.isCharging) pTag = (Math.min(1, p.chargeTimer / p.maxCharge)) >= 0.95 ? '[나 (완충!)]' : '[나 (조준)]';
-      if (p.isNearFire) pTag += ' (따뜻함♨)';
+      let pTag = '[나]'; if (p.isGuarding) pTag = p.parryWindow > 0 ? '[나 (패링!)]' : '[나 (방어)]'; if (p.isCharging) pTag = (Math.min(1, p.chargeTimer / p.maxCharge)) >= 0.95 ? '[나 (완충!)]' : '[나 (조준)]'; if (p.isNearFire) pTag += ' (따뜻함♨)';
       ctx.fillText(pTag, p.x, p.y);
 
+      // 건축 모드 프리뷰
       if (state.buildMode) {
         const snap = getSnapTarget(); const part = buildParts[state.buildIdx];
         const canBuild = state.inventory.wood >= part.cost && !state.structures.some(s => s.x === snap.x && s.y === snap.y);
@@ -531,15 +495,13 @@
       }
 
       for (let i = state.particles.length - 1; i >= 0; i--) { const pt = state.particles[i]; ctx.fillStyle = pt.color; ctx.fillText(pt.text, pt.x, pt.y); pt.y -= 0.6; pt.life--; if (pt.life <= 0) state.particles.splice(i, 1); }
-
       ctx.restore(); renderNightLighting(camX, camY);
     }
 
     function renderNightLighting(camX, camY) {
       const dayCycle = Math.sin(state.worldTime); if (dayCycle > -0.1) return;
       const darkness = Math.min(0.88, Math.abs(dayCycle) * 0.9);
-      lightCtx.clearRect(0, 0, lightCanvas.width, lightCanvas.height);
-      lightCtx.fillStyle = `rgba(3, 7, 10, ${darkness})`; lightCtx.fillRect(0, 0, lightCanvas.width, lightCanvas.height);
+      lightCtx.clearRect(0, 0, lightCanvas.width, lightCanvas.height); lightCtx.fillStyle = `rgba(3, 7, 10, ${darkness})`; lightCtx.fillRect(0, 0, lightCanvas.width, lightCanvas.height);
       lightCtx.globalCompositeOperation = 'destination-out'; const flicker = Math.sin(Date.now() * 0.008) * 4;
 
       const pScreenX = state.player.x - camX; const pScreenY = state.player.y - camY;
@@ -561,7 +523,6 @@
         aGrad.addColorStop(0, 'rgba(0,0,0,0.9)'); aGrad.addColorStop(1, 'rgba(0,0,0,0)');
         lightCtx.fillStyle = aGrad; lightCtx.beginPath(); lightCtx.arc(ax, ay, 150, 0, Math.PI * 2); lightCtx.fill();
       }
-
       lightCtx.globalCompositeOperation = 'source-over'; ctx.drawImage(lightCanvas, 0, 0);
     }
 
