@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>텍스트 발헤임 (무기 분리 & 적 AI & 환경 파괴)</title>
+  <title>텍스트 발헤임 (편의성 & 비선공 패치)</title>
   <style>
     * { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a2f1c; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; }
@@ -106,7 +106,8 @@
 
     const state = {
       worldTime: Math.PI / 2, gameOver: false,
-      player: { x: 1500, y: 1650, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 2.2, weapon: 'sword', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
+      // 이동 속도 증가 (2.2 -> 2.5)
+      player: { x: 1500, y: 1650, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 2.5, weapon: 'sword', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
       joystick: { active: false, startX: 0, startY: 0, dx: 0, dy: 0 },
       keys: {}, mouse: { x: 0, y: 0, worldX: 0, worldY: 0 },
       inventory: { trophy: 0, arrows: 80, wood: 10, stone: 0 },
@@ -127,14 +128,14 @@
         state.clouds.push({ x: Math.random() * WORLD_SIZE, y: Math.random() * WORLD_SIZE, r: 250 + Math.random() * 350, vx: 0.15 + Math.random() * 0.3, vy: 0.05 + Math.random() * 0.15, opacity: 0.02 + Math.random() * 0.04 });
       }
 
-      // 숲 군락지
-      for(let i=0; i<45; i++) {
+      // 숲 군락지 (수량 대폭 감소 45 -> 30, 군락당 나무 10~25그루)
+      for(let i=0; i<30; i++) {
         let forestX = Math.random() * WORLD_SIZE; let forestY = Math.random() * WORLD_SIZE;
-        let numTrees = 30 + Math.random() * 30;
+        let numTrees = 10 + Math.random() * 15;
         for(let j=0; j<numTrees; j++) {
           let rx = forestX + (Math.random() - 0.5) * 450; let ry = forestY + (Math.random() - 0.5) * 450;
           if (rx < 0 || ry < 0 || rx > WORLD_SIZE || ry > WORLD_SIZE) continue;
-          if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 130) continue;
+          if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
           let r = Math.random();
           if(r > 0.7) state.resources.push({ text: '[🌳 거대한 참나무]', type: 'wood', letters: ['ㅊ','ㅏ','ㅁ','ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 5, fontSize: '24px' });
           else if(r > 0.4) state.resources.push({ text: '[🌲 소나무]', type: 'wood', letters: ['ㅅ','ㅗ','ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 3, fontSize: '20px' });
@@ -142,32 +143,32 @@
         }
       }
 
-      // 채석장 군락지
-      for(let i=0; i<25; i++) {
+      // 채석장 군락지 (수량 감소 25 -> 15)
+      for(let i=0; i<15; i++) {
         let rockX = Math.random() * WORLD_SIZE; let rockY = Math.random() * WORLD_SIZE;
-        for(let j=0; j<15; j++) {
+        for(let j=0; j<8; j++) {
           let rx = rockX + (Math.random() - 0.5) * 300; let ry = rockY + (Math.random() - 0.5) * 300;
           if (rx < 0 || ry < 0 || rx > WORLD_SIZE || ry > WORLD_SIZE) continue;
-          if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 130) continue;
+          if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
           state.resources.push({ text: '[🪨 바위]', type: 'stone', letters: ['ㅂ','ㅏ','ㅇ','ㅢ'], x: rx, y: ry, hp: 5, fontSize: '18px' });
         }
       }
 
-      // 멧돼지
-      for(let i=0; i<100; i++) {
-        let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
-        if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
-        state.enemies.push({ text: '[🐗 멧돼지]', type: 'boar', letters: ['ㅁ','ㅔ','ㅅ','ㄷ','ㅘ','ㅈ','ㅣ'], x: rx, y: ry, hp: 30, maxHp: 30, shake: 0, drop: 'trophy', roamTimer: 0, vx: 0, vy: 0, atkCool: 0 });
-      }
-
-      // 고블린 (새로운 적)
+      // 멧돼지 (개체수 100 -> 60)
       for(let i=0; i<60; i++) {
         let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
-        if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 200) continue;
-        state.enemies.push({ text: '[👺 고블린]', type: 'goblin', letters: ['ㄱ','ㅗ','ㅂ','ㅡ','ㄹ','ㄹ','ㅣ','ㄴ'], x: rx, y: ry, hp: 45, maxHp: 45, shake: 0, drop: 'stone', roamTimer: 0, vx: 0, vy: 0, atkCool: 0 });
+        if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
+        state.enemies.push({ text: '[🐗 멧돼지]', type: 'boar', letters: ['ㅁ','ㅔ','ㅅ','ㄷ','ㅘ','ㅈ','ㅣ'], x: rx, y: ry, hp: 30, maxHp: 30, shake: 0, drop: 'trophy', roamTimer: 0, vx: 0, vy: 0 });
       }
 
-      // 채집물
+      // 고블린 (개체수 60 -> 40)
+      for(let i=0; i<40; i++) {
+        let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
+        if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 200) continue;
+        state.enemies.push({ text: '[👺 고블린]', type: 'goblin', letters: ['ㄱ','ㅗ','ㅂ','ㅡ','ㄹ','ㄹ','ㅣ','ㄴ'], x: rx, y: ry, hp: 45, maxHp: 45, shake: 0, drop: 'stone', roamTimer: 0, vx: 0, vy: 0 });
+      }
+
+      // 채집물 (풍족하게 유지)
       for(let i=0; i<250; i++) {
         let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
         if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 100) continue;
@@ -282,15 +283,16 @@
         if (state.inventory.trophy >= 2) {
           state.altar.activated = true; flashScreen(); document.getElementById('boss-hud').style.display = 'flex';
           addTextParticle('[⚡ 에이크쉬르 강림! ⚡]', state.altar.x, state.altar.y - 40, '#00d2d3');
-          state.boss = { name: '[ 거 대 한 사 슴 왕 ]', x: state.altar.x, y: state.altar.y - 150, hp: 600, maxHp: 600, state: 'idle', timer: 0, shake: 0, targetX: 0, targetY: 0 };
+          // 보스 체력 600 -> 500 소폭 감소
+          state.boss = { name: '[ 거 대 한 사 슴 왕 ]', x: state.altar.x, y: state.altar.y - 150, hp: 500, maxHp: 500, state: 'idle', timer: 0, shake: 0, targetX: 0, targetY: 0 };
         } else addTextParticle('[사슴 트로피 2개 필요!]', state.altar.x, state.altar.y - 20, '#ff4757');
       }
     }
     function flashScreen() { const fl = document.getElementById('flash-overlay'); fl.style.opacity = '0.85'; setTimeout(() => fl.style.opacity = '0', 70); }
 
-    // 검 공격: 범위 대폭 감소 (각도 약 72도, 사거리 65px). 나무/바위 안 때려짐.
+    // 스태미나 소모 12 -> 10 감소
     function performSwordAttack() {
-      const p = state.player; if (p.sta < 12) return; p.sta -= 12; state.swingAnim = 10; const angle = p.facingAngle;
+      const p = state.player; if (p.sta < 10) return; p.sta -= 10; state.swingAnim = 10; const angle = p.facingAngle;
       
       state.enemies.forEach(en => {
         if (hitCheck(p, en, angle, 65, Math.PI / 5)) {
@@ -312,16 +314,15 @@
       }
     }
 
-    // 도끼 공격: 자원 채집 특화. 사거리 55px, 넓은 각도.
+    // 도끼 스태미나 소모 15 -> 12 감소
     function performAxeAttack() {
-      const p = state.player; if (p.sta < 15) return; p.sta -= 15; state.axeAnim = 10; const angle = p.facingAngle;
+      const p = state.player; if (p.sta < 12) return; p.sta -= 12; state.axeAnim = 10; const angle = p.facingAngle;
       
       state.resources.forEach(r => {
         if (hitCheck(p, r, angle, 60, Math.PI / 3)) { r.hp -= 1.5; addTextParticle('[퍽!]', r.x, r.y - 10, '#f1c40f'); if (r.hp <= 0) explodeLetters(r.letters, r.x, r.y, r.type); }
       });
       state.resources = state.resources.filter(r => r.hp > 0);
 
-      // 도끼로 적도 때릴 수는 있음 (데미지 낮음)
       state.enemies.forEach(en => {
         if (hitCheck(p, en, angle, 55, Math.PI / 3)) {
           en.hp -= 10; en.shake = 8;
@@ -362,7 +363,6 @@
       if (state.gameOver) return;
       const p = state.player; state.worldTime += 0.0006;
 
-      // 구름(안개) 이동
       state.clouds.forEach(c => {
         c.x += c.vx; c.y += c.vy;
         if(c.x > WORLD_SIZE + c.r) c.x = -c.r; if(c.y > WORLD_SIZE + c.r) c.y = -c.r;
@@ -375,15 +375,19 @@
 
       if (dx !== 0 || dy !== 0) {
         const len = Math.hypot(dx, dy); let curSpeed = p.speed;
-        if (state.keys['shift'] && p.sta > 0) { curSpeed *= 1.5; p.sta = Math.max(0, p.sta - 0.25); }
+        if (state.keys['shift'] && p.sta > 0) { curSpeed *= 1.6; p.sta = Math.max(0, p.sta - 0.2); }
         if (p.isCharging) curSpeed *= 0.4;
         let nextX = p.x + (dx / len) * curSpeed; let nextY = p.y + (dy / len) * curSpeed;
         if (!checkCollision(nextX, p.y, false)) p.x = nextX;
         if (!checkCollision(p.x, nextY, false)) p.y = nextY;
         if (state.joystick.active) p.facingAngle = Math.atan2(dy, dx);
-      } else { if (!p.isCharging && !state.buildMode) p.sta = Math.min(p.maxSta, p.sta + (p.isNearFire ? 0.5 : 0.25)); }
+      } else { 
+        // 스태미나 기본 회복량 증가 (0.25 -> 0.4), 모닥불 회복량 증가 (0.5 -> 0.8)
+        if (!p.isCharging && !state.buildMode) p.sta = Math.min(p.maxSta, p.sta + (p.isNearFire ? 0.8 : 0.4)); 
+      }
 
-      if (p.isNearFire) p.hp = Math.min(p.maxHp, p.hp + 0.05);
+      // 모닥불 체력 회복량 증가
+      if (p.isNearFire) p.hp = Math.min(p.maxHp, p.hp + 0.1);
       if (p.isCharging) { p.chargeTimer++; p.sta = Math.max(0, p.sta - 0.08); if (p.sta <= 0) fireBow(); }
       if (p.parryWindow > 0) p.parryWindow--;
 
@@ -396,42 +400,35 @@
         }
       }
 
-      // 적 AI (공격 & 배회)
+      // 적 AI: 선공 제거(평화 모드). 배회만 합니다.
       state.enemies.forEach(en => {
         if (en.hp <= 0) return; 
-        let distToPlayer = Math.hypot(p.x - en.x, p.y - en.y);
         
-        if (distToPlayer < 250 && !state.buildMode) { // 플레이어 추적
-          let angle = Math.atan2(p.y - en.y, p.x - en.x);
-          let spd = en.type === 'goblin' ? 1.4 : 0.9;
-          en.vx = Math.cos(angle) * spd; en.vy = Math.sin(angle) * spd;
-
-          en.atkCool = (en.atkCool || 0) - 1;
-          if (distToPlayer < 40 && en.atkCool <= 0) {
-            let dmg = en.type === 'goblin' ? 15 : 10;
-            if (p.isGuarding && p.parryWindow > 0) {
-              addTextParticle('[!! 패링 !!]', p.x, p.y - 20, '#f1c40f');
-              en.shake = 15; en.atkCool = 100;
-            } else {
-              p.hp -= dmg; addTextParticle(`[-${dmg}]`, p.x, p.y - 15, '#ff4757');
-              en.atkCool = 80;
-            }
-          }
-        } else { // 배회
-          en.roamTimer--;
-          if (en.roamTimer <= 0) { en.roamTimer = 60 + Math.random() * 90; const a = Math.random() * Math.PI * 2; en.vx = Math.cos(a) * 0.5; en.vy = Math.sin(a) * 0.5; }
+        en.roamTimer--;
+        if (en.roamTimer <= 0) { 
+          en.roamTimer = 60 + Math.random() * 90; 
+          const a = Math.random() * Math.PI * 2; 
+          en.vx = Math.cos(a) * 0.5; 
+          en.vy = Math.sin(a) * 0.5; 
         }
+        
         if (!checkCollision(en.x + en.vx, en.y, true)) en.x += en.vx;
         if (!checkCollision(en.x, en.y + en.vy, true)) en.y += en.vy;
       });
 
+      // 파편 흡수: 자석 성능 대폭 강화
       for (let i = state.letterPickups.length - 1; i >= 0; i--) {
         const lp = state.letterPickups[i]; lp.x += lp.vx; lp.y += lp.vy; lp.vx *= 0.88; lp.vy *= 0.88;
         if (lp.delayPickup > 0) lp.delayPickup--;
         const dist = Math.hypot(p.x - lp.x, p.y - lp.y);
-        if (lp.delayPickup <= 0 && dist < 85) {
-          const pullAngle = Math.atan2(p.y - lp.y, p.x - lp.x); lp.x += Math.cos(pullAngle) * 6.5; lp.y += Math.sin(pullAngle) * 6.5;
-          if (dist < 25) {
+        
+        // 반경 150px 부터 흡수 시작 (기존 85)
+        if (lp.delayPickup <= 0 && dist < 150) {
+          const pullAngle = Math.atan2(p.y - lp.y, p.x - lp.x); 
+          lp.x += Math.cos(pullAngle) * 8.5; // 흡수 속도 증가 (6.5 -> 8.5)
+          lp.y += Math.sin(pullAngle) * 8.5;
+          
+          if (dist < 35) { // 획득 판정 반경 넓힘 (25 -> 35)
             if (lp.itemType === 'wood') { state.inventory.wood++; addTextParticle(`[${lp.char} (목재+1)]`, p.x, p.y - 25, '#2ed573'); }
             else if (lp.itemType === 'stone') { state.inventory.stone++; addTextParticle(`[${lp.char} (석재+1)]`, p.x, p.y - 25, '#a4b0be'); }
             else addTextParticle(`[파편!]`, p.x, p.y - 25, '#ff4757');
@@ -477,8 +474,6 @@
         } else if (b.state === 'charging') {
           if (b.timer > 35) {
             const angle = Math.atan2(b.targetY - b.y, b.targetX - b.x); 
-            
-            // 보스 돌진: 환경 파괴 (나무, 바위 와장창!)
             for (let i = state.resources.length - 1; i >= 0; i--) {
               let r = state.resources[i];
               if (Math.hypot(r.x - b.x, r.y - b.y) < 65) {
@@ -486,14 +481,11 @@
               }
             }
             state.resources = state.resources.filter(r => r.hp > 0);
-
-            // 보스 돌진: 건물 파괴
             let hitWall = false;
             for(let i=state.structures.length-1; i>=0; i--) {
               let s = state.structures[i];
               if (s.part.collide && Math.hypot(s.x - b.x, s.y - b.y) < 40) { s.hp -= 20; hitWall = true; addTextParticle('[-20 쾅!]', s.x, s.y-10, '#fff'); if(s.hp <= 0) { explodeLetters(['ㅁ','ㅗ','ㄱ','ㅈ','ㅐ'], s.x, s.y, 'wood'); state.structures.splice(i, 1); } }
             }
-
             if (!hitWall) { b.x += Math.cos(angle) * 8.5; b.y += Math.sin(angle) * 8.5; } else { b.state = 'idle'; b.timer = 0; }
             if (Math.hypot(p.x - b.x, p.y - b.y) < 45) { p.hp -= 25; addTextParticle('[-25 들이받힘!]', p.x, p.y - 15, '#ff4757'); b.state = 'idle'; b.timer = 0; }
             if (b.timer > 75) { b.state = 'idle'; b.timer = 0; }
@@ -520,24 +512,20 @@
       grad.addColorStop(0, '#2e5d32'); grad.addColorStop(1, '#1b3b1f'); ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.save(); ctx.translate(-camX, -camY);
 
-      // 잔디 장식
       state.decorations.forEach(d => { if(isVisible(d.x, d.y, camX, camY, 50)) { ctx.fillStyle = d.color; ctx.font = '14px sans-serif'; ctx.fillText(d.text, d.x, d.y); } });
       
-      // 건축 바닥
       ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
       state.structures.forEach(s => { if (s.part.id === 'floor' && isVisible(s.x, s.y, camX, camY)) { ctx.fillStyle = s.part.color; ctx.fillText(s.part.text, s.x, s.y); } });
 
       state.campfires.forEach(c => { if(isVisible(c.x, c.y, camX, camY)) { ctx.fillStyle = '#e67e22'; ctx.fillText('[🔥 모닥불]', c.x, c.y); } });
       if(isVisible(state.altar.x, state.altar.y, camX, camY)) { ctx.fillStyle = state.altar.activated ? '#00d2d3' : '#f1c40f'; ctx.fillText(state.altar.activated ? '[⚡ 제단 ⚡]' : '[🏛️ 소환 제단]', state.altar.x, state.altar.y); }
       
-      // 오브젝트들 (자연물은 폰트를 거대하게)
       state.consumables.forEach(c => { if(isVisible(c.x, c.y, camX, camY)) { ctx.fillStyle = c.type === 'mushroom' ? '#ff4757' : '#ff6b81'; ctx.font = 'bold 13px sans-serif'; ctx.fillText(c.text, c.x, c.y); } });
       state.resources.forEach(r => { if(isVisible(r.x, r.y, camX, camY)) { ctx.fillStyle = r.type === 'wood' ? '#2ed573' : '#ced6e0'; ctx.font = `bold ${r.fontSize} sans-serif`; ctx.fillText(r.text, r.x, r.y); } });
       state.letterPickups.forEach(lp => { if(isVisible(lp.x, lp.y, camX, camY)) { ctx.fillStyle = lp.itemType === 'wood' ? '#2ed573' : (lp.itemType === 'stone' ? '#ced6e0' : '#ff6b81'); ctx.font = 'bold 15px monospace'; ctx.fillText(lp.char, lp.x, lp.y); } });
       
       state.structures.forEach(s => { if (s.part.id !== 'floor' && isVisible(s.x, s.y, camX, camY)) { ctx.fillStyle = s.part.color; let ox = s.shake > 0 ? (Math.random()-0.5)*4 : 0; if(s.shake>0) s.shake--; ctx.font = 'bold 15px sans-serif'; ctx.fillText(s.part.text, s.x + ox, s.y); } });
       
-      // 적 (멧돼지/고블린)
       state.enemies.forEach(en => { if (en.hp > 0 && isVisible(en.x, en.y, camX, camY)) { ctx.fillStyle = en.type === 'goblin' ? '#27ae60' : '#ff7675'; ctx.font = 'bold 14px sans-serif'; let ox = en.shake > 0 ? (Math.random() - 0.5) * 6 : 0; ctx.fillText(`${en.text} [${en.hp}]`, en.x + ox, en.y); } });
 
       if (state.boss && state.boss.hp > 0 && isVisible(state.boss.x, state.boss.y, camX, camY, 200)) { const b = state.boss; ctx.fillStyle = b.state === 'stun' ? '#f1c40f' : '#ff4757'; ctx.font = 'bold 24px sans-serif'; let ox = b.shake > 0 ? (Math.random() - 0.5) * 8 : 0; ctx.fillText(b.state === 'stun' ? '[💫기절!💫]' : b.name, b.x + ox, b.y); }
@@ -545,17 +533,13 @@
       ctx.fillStyle = '#ffffff'; ctx.font = '12px sans-serif'; state.arrows.forEach(arr => { if(isVisible(arr.x, arr.y, camX, camY)) { ctx.save(); ctx.translate(arr.x, arr.y); ctx.rotate(arr.angle); ctx.fillText(arr.isCrit ? '──▶▶' : '──▶', 0, 4); ctx.restore(); } });
 
       const p = state.player;
-      
-      // 검/도끼 궤적 분리
       if (state.swingAnim > 0) { state.swingAnim--; ctx.beginPath(); ctx.arc(p.x, p.y, 65, p.facingAngle - Math.PI/5, p.facingAngle + Math.PI/5); ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; ctx.lineWidth = 3; ctx.stroke(); }
       if (state.axeAnim > 0) { state.axeAnim--; ctx.beginPath(); ctx.arc(p.x, p.y, 55, p.facingAngle - Math.PI/3, p.facingAngle + Math.PI/3); ctx.strokeStyle = '#f39c12'; ctx.lineWidth = 4; ctx.stroke(); }
 
-      // 플레이어 (다윗 컨셉 - 작게 만듦)
       ctx.fillStyle = '#70a1ff'; ctx.font = 'bold 12px sans-serif';
       let pTag = '[나]'; if (p.isGuarding) pTag = p.parryWindow > 0 ? '[나 (패링!)]' : '[나 (방어)]'; if (p.isCharging) pTag = (Math.min(1, p.chargeTimer / p.maxCharge)) >= 0.95 ? '[나 (완충!)]' : '[나 (조준)]'; if (p.isNearFire) pTag += ' (따뜻함♨)';
       ctx.fillText(pTag, p.x, p.y);
 
-      // 건축 모드 프리뷰
       if (state.buildMode) {
         const snap = getSnapTarget(); const part = buildParts[state.buildIdx];
         const canBuild = state.inventory.wood >= part.cost && !state.structures.some(s => s.x === snap.x && s.y === snap.y);
@@ -565,15 +549,12 @@
 
       for (let i = state.particles.length - 1; i >= 0; i--) { const pt = state.particles[i]; ctx.fillStyle = pt.color; ctx.font = '12px sans-serif'; ctx.fillText(pt.text, pt.x, pt.y); pt.y -= 0.6; pt.life--; if (pt.life <= 0) state.particles.splice(i, 1); }
 
-      // ☁️ 안개/구름 레이어 렌더링 (빛과 UI 아래에 깔림)
       state.clouds.forEach(c => {
         if(isVisible(c.x, c.y, camX, camY, c.r)) {
           const cx = c.x - camX; const cy = c.y - camY;
           const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, c.r);
-          cGrad.addColorStop(0, `rgba(255, 255, 255, ${c.opacity})`);
-          cGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          ctx.fillStyle = cGrad;
-          ctx.beginPath(); ctx.arc(cx, cy, c.r, 0, Math.PI * 2); ctx.fill();
+          cGrad.addColorStop(0, `rgba(255, 255, 255, ${c.opacity})`); cGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = cGrad; ctx.beginPath(); ctx.arc(cx, cy, c.r, 0, Math.PI * 2); ctx.fill();
         }
       });
 
