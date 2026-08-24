@@ -17,12 +17,18 @@
     .bar-hp { height: 100%; background: #e74c3c; width: 100%; transition: width 0.1s; }
     .bar-sta { height: 100%; background: #f1c40f; width: 100%; }
 
-    /* 우측 상단 낮밤 시계 UI (겹침 문제 해결) */
+    /* 좌측 중앙 튜토리얼 UI */
+    #tutorial-ui { position: absolute; top: 120px; left: 12px; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; color: #ddd; font-size: 11px; z-index: 10; pointer-events: none; border: 1px solid #444; }
+    #tutorial-ui h3 { margin: 0 0 6px 0; color: #f1c40f; font-size: 13px; text-shadow: 0 0 5px rgba(241,196,15,0.5); }
+    #tutorial-ui ul { margin: 0; padding-left: 15px; line-height: 1.5; }
+
+    /* 우측 상단 낮밤 시계 UI */
     #clock-ui { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.8); border: 2px solid #555; padding: 8px 15px; border-radius: 8px; color: #fff; font-weight: bold; font-size: 13px; text-align: center; z-index: 30; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     #fullscreen-btn { position: absolute; top: 65px; right: 12px; background: rgba(20,25,30,0.8); color: #fff; border: 1px solid #666; border-radius: 4px; padding: 5px 10px; font-size: 11px; z-index: 30; cursor: pointer; }
 
+    /* 알림 UI */
     #raid-alert { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); color: #e74c3c; font-weight: bold; font-size: 26px; text-shadow: 0 0 20px #e74c3c; z-index: 40; opacity: 0; pointer-events: none; text-align: center; transition: opacity 0.5s; width: 100%; }
-    #biome-text { position: absolute; top: 120px; left: 50%; transform: translate(-50%, 0); font-weight: bold; font-size: 24px; text-shadow: 0 4px 15px rgba(0,0,0,1); z-index: 35; transition: opacity 1s ease-in-out, transform 1s ease-out; pointer-events: none; opacity: 0; text-align: center; }
+    #biome-text { position: absolute; top: 120px; left: 50%; transform: translate(-50%, -20px); font-weight: bold; font-size: 24px; text-shadow: 0 4px 15px rgba(0,0,0,1); z-index: 35; transition: opacity 1s ease-in-out, transform 1s ease-out; pointer-events: none; opacity: 0; text-align: center; width: 100%; }
 
     #boss-hud { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; color: #ff4757; font-weight: bold; font-size: 12px; z-index: 20; width: 85%; max-width: 400px; }
     .boss-bar-bg { width: 100%; height: 14px; background: rgba(0,0,0,0.8); border: 2px solid #ff4757; border-radius: 4px; margin-top: 4px; overflow: hidden; }
@@ -63,7 +69,7 @@
 <body>
   <div id="flash-overlay"></div>
 
-  <!-- 상단 우측 UI -->
+  <!-- 상단 우측 UI (시계 & 전체화면) -->
   <div id="clock-ui">
     <div id="day-text" style="color: #f1c40f;">Day 1</div>
     <div id="time-text">☀️ 08:00</div>
@@ -82,8 +88,20 @@
       [구리: <span id="copper-count">0</span>] | [코인: <span id="coin-count">0</span>]<br>
       [트로피: <span id="trophy-count">0</span>]
     </div>
-    <div style="color: #70a1ff;">무기: <span id="weapon-text">맨손(1)</span></div>
-    <div style="color: #d1b8e0;" id="build-status-text">건축(B): 꺼짐 | 부품(R) | 상호작용(E)</div>
+    <div style="color: #70a1ff;">상호작용(E)</div>
+    <div style="color: #d1b8e0;" id="build-status-text">건축(B): 꺼짐 | 부품(R)</div>
+  </div>
+
+  <!-- 튜토리얼 UI -->
+  <div id="tutorial-ui">
+    <h3>📜 조작 가이드</h3>
+    <ul>
+      <li><b>이동:</b> 좌측 조이스틱(터치) / WASD</li>
+      <li><b>공격방향:</b> 우측 터치 / 마우스</li>
+      <li><b>상호작용:</b> 작업대/제단 근처 [E키]</li>
+      <li><b>건축모드:</b> [건축] 버튼 또는 B키</li>
+      <li><b>초반목표:</b> 맨손으로 잔돌과 나무를 모아<br>작업대를 짓고 돌도끼를 만드세요!</li>
+    </ul>
   </div>
 
   <div id="boss-hud"><div>⚡ [ 거 대 한 사 슴 왕 : 에 이 크 쉬 르 ] ⚡</div><div class="boss-bar-bg"><div id="boss-hp"></div></div></div>
@@ -141,8 +159,8 @@
 
     const state = {
       gameSeconds: 150, currentDay: 1, isNight: false, isRaid: false, raidTriggered: false, biomeLerp: 0, 
-      // ★ 이동속도 대폭 하향 완료 (기존 2.5 -> 1.4)
-      player: { x: 2000, y: 2150, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 1.4, weapon: 'barehand', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
+      // ★ 이동속도 대폭 하향 (1.0)
+      player: { x: 2000, y: 2150, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 1.0, weapon: 'barehand', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
       joystick: { active: false, id: null, startX: 0, startY: 0, dx: 0, dy: 0 },
       keys: {}, mouse: { x: 0, y: 0, worldX: 0, worldY: 0 },
       inventory: { trophy: 0, arrows: 60, wood: 0, stone: 0, copper: 0, coin: 0 },
@@ -205,11 +223,11 @@
     }
     initWorld();
 
-    // ★ 충돌 시 게임 멈춤 버그 완벽 방어 처리 (? 연산자 적용)
+    // ★ 충돌 시 게임 멈춤 버그 완벽 방어 처리 (안전장치 적용)
     function checkCollision(nx, ny, isEnemy = false) {
       if(nx < 20 || ny < 20 || nx > WORLD_SIZE - 20 || ny > WORLD_SIZE - 20) return true;
       for (let s of state.structures) {
-        if (s.part && (s.part.collide === true || (s.part.collide === 'enemyOnly' && isEnemy))) {
+        if (s && s.part && (s.part.collide === true || (s.part.collide === 'enemyOnly' && isEnemy))) {
           if (s.part.id !== 'fire' && Math.hypot(nx - s.x, ny - s.y) < 12) return true;
         }
       }
@@ -218,7 +236,7 @@
 
     // ★ 파티클 폭발 시 배열 에러 방지 안전장치 추가
     function explodeLetters(letters, x, y, itemType) {
-      if (!Array.isArray(letters)) return;
+      if (!letters || !Array.isArray(letters)) return; // 에러 방지 가드
       letters.forEach(char => {
         const angle = Math.random() * Math.PI * 2; const speed = 2.5 + Math.random() * 3.5;
         state.letterPickups.push({ char, itemType, x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 1800, delayPickup: 20 });
@@ -237,16 +255,18 @@
     function openCrafting() { state.isUIOpen = true; document.getElementById('crafting-screen').style.display = 'block'; renderCraftList(); }
     function closeCrafting() { state.isUIOpen = false; document.getElementById('crafting-screen').style.display = 'none'; }
     function renderCraftList() {
-      const list = document.getElementById('craft-list'); list.innerHTML = '';
-      recipes.forEach(r => {
-        if(!r.check()) return; 
-        const canCraft = (r.req.wood||0) <= state.inventory.wood && (r.req.stone||0) <= state.inventory.stone && (r.req.trophy||0) <= state.inventory.trophy && (r.req.copper||0) <= state.inventory.copper;
-        let reqStr = [];
-        if(r.req.wood) reqStr.push(`목재 ${r.req.wood}`); if(r.req.stone) reqStr.push(`석재 ${r.req.stone}`); 
-        if(r.req.trophy) reqStr.push(`트로피 ${r.req.trophy}`); if(r.req.copper) reqStr.push(`구리 ${r.req.copper}`);
-        list.innerHTML += `<div class="craft-item"><div class="craft-info"><strong>${r.name}</strong><br><span style="color:#aaa;">${r.desc}</span><br><div class="craft-cost">필요: ${reqStr.join(', ')}</div></div><button class="craft-btn" ${canCraft ? '' : 'disabled'} onclick="craftItem('${r.id}')">제작</button></div>`;
-      });
-      if(list.innerHTML === '') list.innerHTML = '<div style="color:#888; font-size:12px;">모든 장비를 마스터했습니다!</div>';
+      try {
+        const list = document.getElementById('craft-list'); list.innerHTML = '';
+        recipes.forEach(r => {
+          if(!r.check()) return; 
+          const canCraft = (r.req.wood||0) <= state.inventory.wood && (r.req.stone||0) <= state.inventory.stone && (r.req.trophy||0) <= state.inventory.trophy && (r.req.copper||0) <= state.inventory.copper;
+          let reqStr = [];
+          if(r.req.wood) reqStr.push(`목재 ${r.req.wood}`); if(r.req.stone) reqStr.push(`석재 ${r.req.stone}`); 
+          if(r.req.trophy) reqStr.push(`트로피 ${r.req.trophy}`); if(r.req.copper) reqStr.push(`구리 ${r.req.copper}`);
+          list.innerHTML += `<div class="craft-item"><div class="craft-info"><strong>${r.name}</strong><br><span style="color:#aaa;">${r.desc}</span><br><div class="craft-cost">필요: ${reqStr.join(', ')}</div></div><button class="craft-btn" ${canCraft ? '' : 'disabled'} onclick="craftItem('${r.id}')">제작</button></div>`;
+        });
+        if(list.innerHTML === '') list.innerHTML = '<div style="color:#888; font-size:12px;">모든 장비를 마스터했습니다!</div>';
+      } catch(e) { console.error("Crafting Error:", e); }
     }
     
     window.craftItem = function(id) {
@@ -268,11 +288,6 @@
       state.player.weapon = w;
       document.querySelectorAll('.slot').forEach(el => el.classList.remove('active'));
       document.getElementById('slot-' + w).classList.add('active');
-      
-      let t = '맨손(1)';
-      if(w === 'axe') t = '돌도끼(2)'; if(w === 'bow') t = '활(3)';
-      if(w === 'pickaxe') t = '곡괭이(4)'; if(w === 'sword') t = '청동검(5)';
-      document.getElementById('weapon-text').innerText = t;
       if(!state.buildMode) document.getElementById('btn-attack').innerText = (w === 'bow') ? '발사' : '공격';
     }
 
@@ -316,8 +331,11 @@
     window.addEventListener('keydown', e => {
       if (state.gameOver || state.isUIOpen) { if(e.key === 'Escape' || e.key === 'e' || e.key === 'E') closeCrafting(); return; }
       const key = e.key.toLowerCase(); state.keys[key] = true;
-      if (key === '1') setWeapon('barehand'); if (key === '2') setWeapon('axe'); if (key === '3') setWeapon('bow');
-      if (key === '4') setWeapon('pickaxe'); if (key === '5') setWeapon('sword');
+      if (key === '1') setWeapon('barehand');
+      if (key === '2') setWeapon('axe');
+      if (key === '3') setWeapon('bow');
+      if (key === '4') setWeapon('pickaxe');
+      if (key === '5') setWeapon('sword');
       if (key === 'e') performInteract(); 
       if (key === 'b') toggleBuildMode(); if (key === 'r') cycleBuildPart();
     });
@@ -342,7 +360,7 @@
     function toggleBuildMode() {
       state.buildMode = !state.buildMode; const statusText = document.getElementById('build-status-text'); const btnPart = document.getElementById('btn-part');
       if (state.buildMode) { state.player.isCharging = false; state.player.isGuarding = false; btnAttack.innerText = '건설'; btnAttack.style.background = 'rgba(142, 68, 173, 0.8)'; btnAttack.style.borderColor = '#8e44ad'; btnPart.style.display = 'flex'; statusText.innerText = `건축 모드: ${buildParts[state.buildIdx].text} (R키 변경)`; } 
-      else { btnAttack.style.background = 'rgba(231, 76, 60, 0.8)'; btnAttack.style.borderColor = '#e74c3c'; btnPart.style.display = 'none'; btnAttack.innerText = state.player.weapon === 'bow' ? '발사' : '공격'; statusText.innerText = `건축(B): 꺼짐 | 부품(R) | 상호작용(E)`; }
+      else { btnAttack.style.background = 'rgba(231, 76, 60, 0.8)'; btnAttack.style.borderColor = '#e74c3c'; btnPart.style.display = 'none'; btnAttack.innerText = state.player.weapon === 'bow' ? '발사' : '공격'; statusText.innerText = `건축(B): 꺼짐 | 부품(R)`; }
     }
     function cycleBuildPart() { if (!state.buildMode) return; state.buildIdx = (state.buildIdx + 1) % buildParts.length; document.getElementById('build-status-text').innerText = `건축 모드: ${buildParts[state.buildIdx].text} (R키 변경)`; }
     function getSnapTarget() {
@@ -355,7 +373,7 @@
       const part = buildParts[state.buildIdx]; const snap = getSnapTarget();
       if (state.structures.find(s => s.x === snap.x && s.y === snap.y)) { addTextParticle('[이미 건물이 있습니다!]', snap.x, snap.y, '#e74c3c'); return; }
       if (part.collide === true && Math.hypot(state.player.x - snap.x, state.player.y - snap.y) < 20) { addTextParticle('[너무 가깝습니다!]', snap.x, snap.y, '#e74c3c'); return; }
-      if (state.inventory.wood >= part.cost) { state.inventory.wood -= part.cost; state.structures.push({ part, x: snap.x, y: snap.y, hp: 25, maxHp: 25, shake: 0 }); addTextParticle('[설치 완료!]', snap.x, snap.y - 15, '#2ecc71'); } 
+      if (state.inventory.wood >= part.cost) { state.inventory.wood -= part.cost; state.structures.push({ part, x: snap.x, y: snap.y, hp: 20, maxHp: 20, shake: 0 }); addTextParticle('[설치 완료!]', snap.x, snap.y - 15, '#2ecc71'); } 
       else addTextParticle(`[목재 ${part.cost}개 필요!]`, snap.x, snap.y - 15, '#e74c3c');
     }
 
@@ -435,16 +453,21 @@
       }
     }
 
-    // ★ 120Hz 주사율 대응 (60FPS 고정) 프레임 리미터 추가
+    // ★ 120Hz 디스플레이 대응 프레임 리미터 (이동속도 가속 버그 원천 차단)
     let lastTime = performance.now();
-    
+
     function update(currentTime) {
       requestAnimationFrame(update);
+      if(!currentTime) currentTime = performance.now();
       let dt = currentTime - lastTime;
-      if (dt < 16.6) return; // 60fps 이상으로 빨라지는 것 방지
+      if (dt < 15) return; // 약 60FPS(16.6ms) 초과 시 루프 무시
       lastTime = currentTime - (dt % 16.6);
 
-      if (state.gameOver || state.isUIOpen) { draw(state.player.x - canvas.width / 2, state.player.y - canvas.height / 2); return; }
+      // UI 오픈 시 프레임은 요청하되 상태 갱신 중지 (게임 멈춤 에러 해결)
+      if (state.gameOver || state.isUIOpen) { 
+        draw(state.player.x - canvas.width / 2, state.player.y - canvas.height / 2); 
+        return; 
+      }
       
       const p = state.player; 
       state.gameSeconds += 1/60; let cycle = state.gameSeconds % 600; state.isNight = cycle >= 300; 
@@ -470,7 +493,12 @@
         clearTimeout(state.biomeTextTimeout); state.biomeTextTimeout = setTimeout(() => { bt.style.opacity = '0'; bt.style.transform = 'translate(-50%, -20px) scale(1)'; }, 3000);
       }
 
-      state.clouds.forEach(c => { c.x += c.vx; c.y += c.vy; if(c.x > WORLD_SIZE + c.r) c.x = -c.r; if(c.y > WORLD_SIZE + c.r) c.y = -c.r; });
+      state.clouds.forEach(c => { 
+        c.x += c.vx; c.y += c.vy; 
+        if(c.x > WORLD_SIZE + c.r) c.x = -c.r; 
+        if(c.y > WORLD_SIZE + c.r) c.y = -c.r; 
+      });
+      
       p.isNearFire = state.structures.some(s => s.part?.id === 'fire' && Math.hypot(p.x - s.x, p.y - s.y) < 140);
 
       let moveX = 0, moveY = 0;
@@ -530,8 +558,7 @@
         for (let s of state.structures) {
           if (s.part?.id === 'spike' && Math.hypot(en.x + en.vx - s.x, en.y + en.vy - s.y) < 25) {
              en.hp -= 5; en.shake = 10; en.vx *= -1; en.vy *= -1; hitSpike = true; addTextParticle('[-5 찔림]', en.x, en.y - 15, '#e67e22'); 
-             s.hp -= 0.5; // 목책 내구도 소모 감소
-             break;
+             s.hp -= 0.5; break;
           }
         }
         if(!hitSpike) { if (!checkCollision(en.x + en.vx, en.y, true)) en.x += en.vx; if (!checkCollision(en.x, en.y + en.vy, true)) en.y += en.vy; }
@@ -539,7 +566,9 @@
       state.structures = state.structures.filter(s => s.hp > 0);
 
       for (let i = state.letterPickups.length - 1; i >= 0; i--) {
-        const lp = state.letterPickups[i]; lp.x += lp.vx; lp.y += lp.vy; lp.vx *= 0.88; lp.vy *= 0.88;
+        const lp = state.letterPickups[i]; 
+        if(!lp) continue; // 오류 방지 가드
+        lp.x += lp.vx; lp.y += lp.vy; lp.vx *= 0.88; lp.vy *= 0.88;
         if (lp.delayPickup > 0) lp.delayPickup--;
         const dist = Math.hypot(p.x - lp.x, p.y - lp.y);
         if (lp.delayPickup <= 0 && dist < 150) {
@@ -603,7 +632,7 @@
       document.getElementById('wood-count').innerText = state.inventory.wood; document.getElementById('stone-count').innerText = state.inventory.stone;
       document.getElementById('copper-count').innerText = state.inventory.copper; document.getElementById('coin-count').innerText = state.inventory.coin; document.getElementById('trophy-count').innerText = state.inventory.trophy; 
       
-      draw(p.x - canvas.width / 2, p.y - canvas.height / 2);
+      draw(p.x - canvas.width / 2, p.y - canvas.height / 2); 
     }
 
     function isVisible(x, y, camX, camY, padding = 150) { return x > camX - padding && x < camX + canvas.width + padding && y > camY - padding && y < camY + canvas.height + padding; }
@@ -626,7 +655,9 @@
       if(isVisible(state.altar.x, state.altar.y, camX, camY)) { ctx.fillStyle = state.altar.activated ? '#00d2d3' : '#f1c40f'; ctx.fillText(state.altar.activated ? '[⚡ 제단 ⚡]' : '[🏛️ 소환 제단]', state.altar.x, state.altar.y); }
       
       state.consumables.forEach(c => { if(isVisible(c.x, c.y, camX, camY)) { ctx.fillStyle = c.type === 'mushroom' ? '#ff4757' : (c.type === 'berry' ? '#ff6b81' : '#a4b0be'); ctx.font = 'bold 13px sans-serif'; ctx.fillText(c.text, c.x, c.y); } });
-      state.resources.forEach(r => { if(isVisible(r.x, r.y, camX, camY)) { ctx.fillStyle = r.type === 'wood' ? '#2ed573' : (r.type === 'copper' ? '#e67e22' : '#ced6e0'); if(r.text.includes('검은')) ctx.fillStyle = '#7f8fa6'; if(r.type === 'chest') ctx.fillStyle='#f39c12'; ctx.font = `bold ${r.fontSize} sans-serif`; ctx.fillText(r.text, r.x, r.y); } });
+      
+      // ★ 폰트 사이즈 에러 방어 적용 (r.fontSize || '16px')
+      state.resources.forEach(r => { if(isVisible(r.x, r.y, camX, camY)) { ctx.fillStyle = r.type === 'wood' ? '#2ed573' : (r.type === 'copper' ? '#e67e22' : '#ced6e0'); if(r.text.includes('검은')) ctx.fillStyle = '#7f8fa6'; if(r.type === 'chest') ctx.fillStyle='#f39c12'; ctx.font = `bold ${r.fontSize || '16px'} sans-serif`; ctx.fillText(r.text, r.x, r.y); } });
       state.letterPickups.forEach(lp => { if(isVisible(lp.x, lp.y, camX, camY)) { ctx.fillStyle = lp.itemType === 'wood' ? '#2ed573' : (lp.itemType === 'stone' ? '#ced6e0' : (lp.itemType==='copper' ? '#e67e22' : '#ff6b81')); if(lp.itemType==='chest') ctx.fillStyle='#f1c40f'; ctx.font = 'bold 15px monospace'; ctx.fillText(lp.char, lp.x, lp.y); } });
       
       state.structures.forEach(s => { if (s.part?.id !== 'floor' && isVisible(s.x, s.y, camX, camY)) { ctx.fillStyle = s.part.color; let ox = s.shake > 0 ? (Math.random()-0.5)*4 : 0; if(s.shake>0) s.shake--; ctx.font = 'bold 15px sans-serif'; ctx.fillText(s.part.text, s.x + ox, s.y); } });
@@ -666,8 +697,10 @@
         if(isVisible(c.x, c.y, camX, camY, c.r)) {
           const cx = c.x - camX; const cy = c.y - camY;
           const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, c.r);
-          cGrad.addColorStop(0, `rgba(255, 255, 255, ${c.opacity})`); cGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          ctx.fillStyle = cGrad; ctx.beginPath(); ctx.arc(cx, cy, c.r, 0, Math.PI * 2); ctx.fill();
+          cGrad.addColorStop(0, `rgba(255, 255, 255, ${c.opacity})`);
+          cGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = cGrad;
+          ctx.beginPath(); ctx.arc(cx, cy, c.r, 0, Math.PI * 2); ctx.fill();
         }
       });
 
@@ -703,7 +736,7 @@
       lightCtx.globalCompositeOperation = 'source-over'; ctx.drawImage(lightCanvas, 0, 0);
     }
 
-    // 초기 실행
+    // 엔진 시작
     requestAnimationFrame(update);
   </script>
 </body>
