@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>텍스트 발헤임 (작업대 & 검은숲)</title>
+  <title>텍스트 발헤임 (번개 강화 & 이동속도 너프)</title>
   <style>
     * { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a2f1c; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; }
@@ -17,31 +17,31 @@
     .bar-sta { height: 100%; background: #f1c40f; width: 100%; }
 
     #fullscreen-btn { position: absolute; top: env(safe-area-inset-top, 12px); right: 12px; background: rgba(20,25,30,0.8); color: #fff; border: 1px solid #666; border-radius: 4px; padding: 5px 10px; font-size: 11px; z-index: 30; cursor: pointer; }
-    #biome-text { position: absolute; top: env(safe-area-inset-top, 15px); left: 50%; transform: translateX(-50%); color: #2ed573; font-weight: bold; font-size: 16px; text-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 20; transition: color 0.5s; pointer-events: none;}
+    
+    #biome-text { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -20px); font-weight: bold; font-size: 32px; text-shadow: 0 4px 15px rgba(0,0,0,1); z-index: 40; transition: opacity 1s ease-in-out, transform 1s ease-out; pointer-events: none; opacity: 0; text-align: center; }
 
     #boss-hud { position: absolute; top: calc(env(safe-area-inset-top, 10px) + 40px); left: 50%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; color: #ff4757; font-weight: bold; font-size: 12px; z-index: 20; width: 85%; max-width: 400px; }
     .boss-bar-bg { width: 100%; height: 14px; background: rgba(0,0,0,0.8); border: 2px solid #ff4757; border-radius: 4px; margin-top: 4px; overflow: hidden; }
     #boss-hp { height: 100%; background: linear-gradient(90deg, #c0392b, #ff4757); width: 100%; }
 
-    #touch-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; }
-    #joystick-base { position: absolute; bottom: 25px; left: 25px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; pointer-events: auto; }
-    #joystick-stick { position: absolute; top: 33px; left: 33px; width: 44px; height: 44px; background: rgba(241, 196, 15, 0.5); border: 2px solid rgba(241, 196, 15, 0.9); border-radius: 50%; pointer-events: none; }
+    #touch-area-left { position: absolute; top: 0; left: 0; width: 50%; height: 100%; z-index: 24; }
+    #joystick-base { position: absolute; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 25; }
+    #joystick-stick { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin-top: -22px; margin-left: -22px; background: rgba(241, 196, 15, 0.5); border: 2px solid rgba(241, 196, 15, 0.9); border-radius: 50%; pointer-events: none; }
     
-    .btn-action { position: absolute; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; pointer-events: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; }
-    #btn-attack { bottom: 35px; right: 25px; width: 68px; height: 68px; background: rgba(231, 76, 60, 0.8); border: 2px solid #e74c3c; }
-    #btn-parry { bottom: 112px; right: 40px; width: 52px; height: 52px; background: rgba(52, 152, 219, 0.8); border: 2px solid #3498db; }
-    #btn-swap { bottom: 35px; right: 105px; width: 48px; height: 48px; background: rgba(46, 204, 113, 0.8); border: 2px solid #2ecc71; }
-    #btn-interact { bottom: 95px; right: 105px; width: 44px; height: 44px; background: rgba(241, 196, 15, 0.8); border: 2px solid #f1c40f; }
-    #btn-build { bottom: 155px; right: 90px; width: 44px; height: 44px; background: rgba(142, 68, 173, 0.8); border: 2px solid #8e44ad; }
-    #btn-part { bottom: 155px; right: 30px; width: 44px; height: 44px; background: rgba(155, 89, 182, 0.8); border: 2px solid #9b59b6; display: none; }
+    .btn-action { position: absolute; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; pointer-events: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; z-index: 25;}
+    #btn-attack { bottom: 45px; right: 30px; width: 72px; height: 72px; background: rgba(231, 76, 60, 0.8); border: 2px solid #e74c3c; }
+    #btn-parry { bottom: 125px; right: 45px; width: 56px; height: 56px; background: rgba(52, 152, 219, 0.8); border: 2px solid #3498db; }
+    #btn-swap { bottom: 45px; right: 115px; width: 52px; height: 52px; background: rgba(46, 204, 113, 0.8); border: 2px solid #2ecc71; }
+    #btn-interact { bottom: 105px; right: 115px; width: 48px; height: 48px; background: rgba(241, 196, 15, 0.8); border: 2px solid #f1c40f; }
+    #btn-build { bottom: 165px; right: 100px; width: 48px; height: 48px; background: rgba(142, 68, 173, 0.8); border: 2px solid #8e44ad; }
+    #btn-part { bottom: 165px; right: 35px; width: 48px; height: 48px; background: rgba(155, 89, 182, 0.8); border: 2px solid #9b59b6; display: none; }
 
     #flash-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: white; opacity: 0; pointer-events: none; transition: opacity 0.05s ease-out; z-index: 22; }
     
-    .modal-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 20, 25, 0.95); padding: 25px; text-align: center; color: #fff; display: none; border-radius: 8px; z-index: 50; width: 80%; max-width: 350px; border: 2px solid #555; }
-    #gameover-screen { border-color: #e74c3c; box-shadow: 0 0 40px rgba(231,76,60,0.5); }
-    #victory-screen { border-color: #f1c40f; box-shadow: 0 0 40px rgba(241,196,15,0.4); }
+    .modal-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 20, 25, 0.95); padding: 25px; text-align: center; color: #fff; display: none; border-radius: 8px; z-index: 50; width: 80%; max-width: 350px; border: 2px solid #555; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+    #gameover-screen { border-color: #e74c3c; }
+    #victory-screen { border-color: #f1c40f; }
 
-    /* 제작 UI */
     .craft-item { background: #2c3e50; border: 1px solid #34495e; padding: 10px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
     .craft-info { font-size: 12px; }
     .craft-cost { color: #f1c40f; font-size: 10px; margin-top: 4px; }
@@ -54,7 +54,7 @@
   <div id="flash-overlay"></div>
   <button id="fullscreen-btn" onclick="toggleFullScreen()">전체화면</button>
 
-  <div id="biome-text">🌲 초원</div>
+  <div id="biome-text">🌲 검은 숲</div>
 
   <div id="hud">
     <div>체력 <span id="hp-text">100/100</span></div>
@@ -74,19 +74,18 @@
     <div class="boss-bar-bg"><div id="boss-hp"></div></div>
   </div>
 
-  <div id="touch-controls">
-    <div id="joystick-base"><div id="joystick-stick"></div></div>
-    <div class="btn-action" id="btn-attack">공격</div>
-    <div class="btn-action" id="btn-parry">방어</div>
-    <div class="btn-action" id="btn-swap">무기</div>
-    <div class="btn-action" id="btn-interact">E키</div>
-    <div class="btn-action" id="btn-build">건축</div>
-    <div class="btn-action" id="btn-part">부품</div>
-  </div>
+  <div id="touch-area-left"></div>
+  <div id="joystick-base"><div id="joystick-stick"></div></div>
 
-  <!-- 작업대 UI -->
+  <div class="btn-action" id="btn-attack">공격</div>
+  <div class="btn-action" id="btn-parry">방어</div>
+  <div class="btn-action" id="btn-swap">무기</div>
+  <div class="btn-action" id="btn-interact">E키</div>
+  <div class="btn-action" id="btn-build">건축</div>
+  <div class="btn-action" id="btn-part">부품</div>
+
   <div id="crafting-screen" class="modal-screen">
-    <h3 style="color: #3498db; margin: 0 0 15px 0;">🛠️ 작업대 (제작/강화)</h3>
+    <h3 style="color: #3498db; margin: 0 0 15px 0;">🛠️ 작업대 (장비 강화)</h3>
     <div id="craft-list"></div>
     <button onclick="closeCrafting()" style="padding: 8px 20px; margin-top: 15px; background: #555; color:#fff; border:none; border-radius:4px; cursor:pointer;">닫기</button>
   </div>
@@ -114,7 +113,6 @@
     const WORLD_SIZE = 3000;
     const ALTAR_POS = { x: 1500, y: 1500 };
 
-    // 건축 부품 (작업대 추가)
     const buildParts = [
       { id: 'floor', text: '[ ▤ 바닥 ]', cost: 2, collide: false, color: '#8e705b' },
       { id: 'wall', text: '[ | 벽 | ]', cost: 2, collide: true, color: '#a4b0be' },
@@ -125,26 +123,24 @@
 
     const state = {
       worldTime: Math.PI / 2, gameOver: false,
-      player: { x: 1500, y: 1650, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 2.5, weapon: 'sword', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
-      joystick: { active: false, startX: 0, startY: 0, dx: 0, dy: 0 },
+      biomeLerp: 0, 
+      // ★ 속도 대폭 너프: 2.5 -> 1.2
+      player: { x: 1500, y: 1650, hp: 100, maxHp: 100, sta: 100, maxSta: 100, speed: 1.2, weapon: 'sword', isGuarding: false, parryWindow: 0, chargeTimer: 0, maxCharge: 45, isCharging: false, facingAngle: 0, isNearFire: false },
+      joystick: { active: false, id: null, startX: 0, startY: 0, dx: 0, dy: 0 },
       keys: {}, mouse: { x: 0, y: 0, worldX: 0, worldY: 0 },
-      inventory: { trophy: 0, arrows: 60, wood: 15, stone: 0 }, // 초기 자원
-      upgrades: { axe: false, armor: false }, // 제작 상태
+      inventory: { trophy: 0, arrows: 60, wood: 15, stone: 0 }, 
+      upgrades: { axe: false, armor: false }, 
       buildMode: false, buildIdx: 1, structures: [],
       swingAnim: 0, axeAnim: 0, arrows: [], particles: [], letterPickups: [], lightnings: [], clouds: [],
       altar: { x: ALTAR_POS.x, y: ALTAR_POS.y, activated: false }, boss: null,
       enemies: [], resources: [], consumables: [], decorations: [],
-      isUIOpen: false, currentBiome: 'meadow'
+      isUIOpen: false, currentBiome: 'meadow', biomeTextTimeout: null
     };
 
     function initWorld() {
-      // 장식 (대폭 감소)
-      for(let i=0; i<1500; i++) {
-        state.decorations.push({ text: Math.random() > 0.9 ? '✿' : '.', x: Math.random() * WORLD_SIZE, y: Math.random() * WORLD_SIZE, color: Math.random() > 0.9 ? '#f1c40f' : 'rgba(46, 213, 115, 0.3)' });
-      }
+      for(let i=0; i<1500; i++) state.decorations.push({ text: Math.random() > 0.9 ? '✿' : '.', x: Math.random() * WORLD_SIZE, y: Math.random() * WORLD_SIZE, color: Math.random() > 0.9 ? '#f1c40f' : 'rgba(46, 213, 115, 0.3)' });
       for(let i=0; i<50; i++) state.clouds.push({ x: Math.random() * WORLD_SIZE, y: Math.random() * WORLD_SIZE, r: 250 + Math.random() * 300, vx: 0.15 + Math.random() * 0.3, vy: 0.05 + Math.random() * 0.15, opacity: 0.02 + Math.random() * 0.03 });
 
-      // 나무 군락지 (다이어트: 15개, 각 8~15그루)
       for(let i=0; i<15; i++) {
         let forestX = Math.random() * WORLD_SIZE; let forestY = Math.random() * WORLD_SIZE;
         let numTrees = 8 + Math.random() * 7;
@@ -152,13 +148,11 @@
           let rx = forestX + (Math.random() - 0.5) * 400; let ry = forestY + (Math.random() - 0.5) * 400;
           if (rx < 0 || ry < 0 || rx > WORLD_SIZE || ry > WORLD_SIZE || Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150) continue;
           let r = Math.random();
-          // 검은 숲(반경 800 밖)에는 썩은 나무 스폰
           if(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) > 800 && r > 0.5) state.resources.push({ text: '[🌲 검은 소나무]', type: 'wood', letters: ['ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 5, fontSize: '22px' });
           else state.resources.push({ text: '[나무]', type: 'wood', letters: ['ㄴ','ㅏ','ㅁ','ㅜ'], x: rx, y: ry, hp: 3, fontSize: '18px' });
         }
       }
 
-      // 바위 군락지 (8개, 각 5개)
       for(let i=0; i<8; i++) {
         let rockX = Math.random() * WORLD_SIZE; let rockY = Math.random() * WORLD_SIZE;
         for(let j=0; j<5; j++) {
@@ -168,21 +162,16 @@
         }
       }
 
-      // 멧돼지 (초원 전용, 25마리)
       for(let i=0; i<25; i++) {
-        let rx, ry;
-        do { rx = Math.random() * WORLD_SIZE; ry = Math.random() * WORLD_SIZE; } while(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) > 800 || Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150);
+        let rx, ry; do { rx = Math.random() * WORLD_SIZE; ry = Math.random() * WORLD_SIZE; } while(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) > 800 || Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 150);
         state.enemies.push({ text: '[🐗 멧돼지]', type: 'boar', letters: ['ㄱ','ㅗ','ㄱ','ㅣ'], x: rx, y: ry, hp: 20, maxHp: 20, shake: 0, drop: 'trophy', roamTimer: 0, vx: 0, vy: 0, atkCool: 0 });
       }
 
-      // 고블린 (검은 숲 전용, 20마리)
       for(let i=0; i<20; i++) {
-        let rx, ry;
-        do { rx = Math.random() * WORLD_SIZE; ry = Math.random() * WORLD_SIZE; } while(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 800);
+        let rx, ry; do { rx = Math.random() * WORLD_SIZE; ry = Math.random() * WORLD_SIZE; } while(Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 800);
         state.enemies.push({ text: '[👺 고블린]', type: 'goblin', letters: ['ㄱ','ㅗ','ㅂ','ㅡ','ㄹ','ㄹ','ㅣ','ㄴ'], x: rx, y: ry, hp: 45, maxHp: 45, shake: 0, drop: 'stone', roamTimer: 0, vx: 0, vy: 0, atkCool: 0 });
       }
 
-      // 채집물 (100개)
       for(let i=0; i<100; i++) {
         let rx = Math.random() * WORLD_SIZE; let ry = Math.random() * WORLD_SIZE;
         if (Math.hypot(rx - ALTAR_POS.x, ry - ALTAR_POS.y) < 100) continue;
@@ -196,7 +185,6 @@
       if(nx < 20 || ny < 20 || nx > WORLD_SIZE - 20 || ny > WORLD_SIZE - 20) return true;
       for (let s of state.structures) {
         if (s.part.collide === true || (s.part.collide === 'enemyOnly' && isEnemy)) {
-          // 모닥불도 12px 충돌이 있지만 통과 가능하게 처리
           if (s.part.id !== 'fire' && Math.hypot(nx - s.x, ny - s.y) < 12) return true;
         }
       }
@@ -210,37 +198,25 @@
       });
     }
 
-    // --- 제작 시스템 (Crafting) ---
     const recipes = [
-      { id: 'axe', name: '[단단한 돌도끼]', req: { wood: 5, stone: 5 }, desc: '벌목 피해량 2배 증가', check: () => !state.upgrades.axe },
+      { id: 'axe', name: '[단단한 돌도끼]', req: { wood: 5, stone: 5 }, desc: '벌목 피해량 대폭 증가', check: () => !state.upgrades.axe },
       { id: 'armor', name: '[가죽 갑옷]', req: { trophy: 2 }, desc: '최대 체력 +50 증가', check: () => !state.upgrades.armor }
     ];
 
-    function openCrafting() {
-      state.isUIOpen = true;
-      document.getElementById('crafting-screen').style.display = 'block';
-      renderCraftList();
-    }
-    function closeCrafting() {
-      state.isUIOpen = false;
-      document.getElementById('crafting-screen').style.display = 'none';
-    }
+    function openCrafting() { state.isUIOpen = true; document.getElementById('crafting-screen').style.display = 'block'; renderCraftList(); }
+    function closeCrafting() { state.isUIOpen = false; document.getElementById('crafting-screen').style.display = 'none'; }
     function renderCraftList() {
-      const list = document.getElementById('craft-list');
-      list.innerHTML = '';
+      const list = document.getElementById('craft-list'); list.innerHTML = '';
       recipes.forEach(r => {
-        if(!r.check()) return; // 이미 제작함
+        if(!r.check()) return; 
         const canCraft = (r.req.wood||0) <= state.inventory.wood && (r.req.stone||0) <= state.inventory.stone && (r.req.trophy||0) <= state.inventory.trophy;
         let reqStr = [];
-        if(r.req.wood) reqStr.push(`목재 ${r.req.wood}`);
-        if(r.req.stone) reqStr.push(`석재 ${r.req.stone}`);
-        if(r.req.trophy) reqStr.push(`트로피 ${r.req.trophy}`);
+        if(r.req.wood) reqStr.push(`목재 ${r.req.wood}`); if(r.req.stone) reqStr.push(`석재 ${r.req.stone}`); if(r.req.trophy) reqStr.push(`트로피 ${r.req.trophy}`);
         
         list.innerHTML += `
           <div class="craft-item">
             <div class="craft-info">
-              <strong>${r.name}</strong><br>
-              <span style="color:#aaa;">${r.desc}</span><br>
+              <strong>${r.name}</strong><br><span style="color:#aaa;">${r.desc}</span><br>
               <div class="craft-cost">필요: ${reqStr.join(', ')}</div>
             </div>
             <button class="craft-btn" ${canCraft ? '' : 'disabled'} onclick="craftItem('${r.id}')">제작</button>
@@ -251,29 +227,18 @@
     }
     window.craftItem = function(id) {
       const r = recipes.find(x => x.id === id);
-      if(r.req.wood) state.inventory.wood -= r.req.wood;
-      if(r.req.stone) state.inventory.stone -= r.req.stone;
-      if(r.req.trophy) state.inventory.trophy -= r.req.trophy;
-      
+      if(r.req.wood) state.inventory.wood -= r.req.wood; if(r.req.stone) state.inventory.stone -= r.req.stone; if(r.req.trophy) state.inventory.trophy -= r.req.trophy;
       if(id === 'axe') { state.upgrades.axe = true; addTextParticle('[돌도끼 업그레이드!]', state.player.x, state.player.y - 30, '#f1c40f'); }
       if(id === 'armor') { state.upgrades.armor = true; state.player.maxHp += 50; state.player.hp += 50; addTextParticle('[최대 체력 증가!]', state.player.x, state.player.y - 30, '#2ecc71'); }
-      
       renderCraftList();
     };
 
-    // --- 상호작용 (E키) 통합 ---
     function performInteract() {
       const p = state.player;
-      // 1. 작업대 확인
       let nearWorkbench = false;
-      for(let s of state.structures) {
-        if(s.part.id === 'workbench' && Math.hypot(p.x - s.x, p.y - s.y) < 80) {
-          openCrafting(); nearWorkbench = true; break;
-        }
-      }
+      for(let s of state.structures) { if(s.part.id === 'workbench' && Math.hypot(p.x - s.x, p.y - s.y) < 80) { openCrafting(); nearWorkbench = true; break; } }
       if(nearWorkbench) return;
 
-      // 2. 제단 확인
       if (Math.hypot(p.x - state.altar.x, p.y - state.altar.y) < 120 && !state.altar.activated) {
         if (state.inventory.trophy >= 2) {
           state.altar.activated = true; flashScreen(); document.getElementById('boss-hud').style.display = 'flex';
@@ -283,12 +248,37 @@
       }
     }
 
-    // --- 조작계 바인딩 ---
-    const joyBase = document.getElementById('joystick-base'); const joyStick = document.getElementById('joystick-stick');
-    joyBase.addEventListener('touchstart', e => { const touch = e.targetTouches[0]; const rect = joyBase.getBoundingClientRect(); state.joystick.active = true; state.joystick.startX = rect.left + rect.width / 2; state.joystick.startY = rect.top + rect.height / 2; handleJoyMove(touch.clientX, touch.clientY); });
-    window.addEventListener('touchmove', e => { if (!state.joystick.active) return; for (let i = 0; i < e.touches.length; i++) { if (e.touches[i].clientX < window.innerWidth / 2) { handleJoyMove(e.touches[i].clientX, e.touches[i].clientY); break; } } });
-    const resetJoy = () => { state.joystick.active = false; state.joystick.dx = 0; state.joystick.dy = 0; joyStick.style.transform = `translate(0px, 0px)`; };
-    window.addEventListener('touchend', resetJoy); window.addEventListener('touchcancel', resetJoy);
+    const touchAreaLeft = document.getElementById('touch-area-left'); 
+    const joyBase = document.getElementById('joystick-base'); 
+    const joyStick = document.getElementById('joystick-stick');
+
+    touchAreaLeft.addEventListener('touchstart', e => {
+      e.preventDefault(); if (state.joystick.active) return;
+      const touch = e.changedTouches[0];
+      state.joystick.active = true; state.joystick.id = touch.identifier;
+      state.joystick.startX = touch.clientX; state.joystick.startY = touch.clientY;
+      joyBase.style.left = touch.clientX + 'px'; joyBase.style.top = touch.clientY + 'px';
+      joyBase.style.display = 'block'; joyStick.style.transform = `translate(0px, 0px)`;
+    });
+    touchAreaLeft.addEventListener('touchmove', e => {
+      e.preventDefault(); if (!state.joystick.active) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === state.joystick.id) {
+          handleJoyMove(e.changedTouches[i].clientX, e.changedTouches[i].clientY); break;
+        }
+      }
+    });
+    const resetJoy = e => {
+      if (!state.joystick.active) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === state.joystick.id) {
+          state.joystick.active = false; state.joystick.dx = 0; state.joystick.dy = 0;
+          joyBase.style.display = 'none'; joyStick.style.transform = `translate(0px, 0px)`; break;
+        }
+      }
+    };
+    touchAreaLeft.addEventListener('touchend', resetJoy); touchAreaLeft.addEventListener('touchcancel', resetJoy);
+
     function handleJoyMove(cx, cy) {
       const maxDist = 38; let dx = cx - state.joystick.startX; let dy = cy - state.joystick.startY;
       const dist = Math.hypot(dx, dy); if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
@@ -306,23 +296,17 @@
     document.getElementById('btn-part').addEventListener('touchstart', e => { e.preventDefault(); if(!state.isUIOpen) cycleBuildPart(); });
 
     window.addEventListener('keydown', e => {
-      if (state.gameOver || state.isUIOpen) {
-        if(e.key === 'Escape' || e.key === 'e' || e.key === 'E') closeCrafting();
-        return;
-      }
+      if (state.gameOver || state.isUIOpen) { if(e.key === 'Escape' || e.key === 'e' || e.key === 'E') closeCrafting(); return; }
       const key = e.key.toLowerCase(); state.keys[key] = true;
       if (key === '1') { state.player.weapon = 'sword'; updateWeaponUI(); }
       if (key === '2') { state.player.weapon = 'bow'; updateWeaponUI(); }
       if (key === '3') { state.player.weapon = 'axe'; updateWeaponUI(); }
-      if (key === 'e') performInteract();
-      if (key === 'b') toggleBuildMode(); if (key === 'r') cycleBuildPart();
+      if (key === 'e') performInteract(); if (key === 'b') toggleBuildMode(); if (key === 'r') cycleBuildPart();
     });
     window.addEventListener('keyup', e => state.keys[e.key.toLowerCase()] = false);
     window.addEventListener('mousemove', e => {
       if(state.isUIOpen) return;
-      state.mouse.x = e.clientX; state.mouse.y = e.clientY;
-      const camX = state.player.x - canvas.width / 2; const camY = state.player.y - canvas.height / 2;
-      state.mouse.worldX = e.clientX + camX; state.mouse.worldY = e.clientY + camY;
+      state.mouse.x = e.clientX; state.mouse.y = e.clientY; const camX = state.player.x - canvas.width / 2; const camY = state.player.y - canvas.height / 2; state.mouse.worldX = e.clientX + camX; state.mouse.worldY = e.clientY + camY;
       if (!state.joystick.active) state.player.facingAngle = Math.atan2(e.clientY + camY - state.player.y, e.clientX + camX - state.player.x);
     });
     window.addEventListener('mousedown', e => {
@@ -359,36 +343,21 @@
 
     function performSwordAttack() {
       const p = state.player; if (p.sta < 12) return; p.sta -= 12; state.swingAnim = 10; const angle = p.facingAngle;
-      
       state.enemies.forEach(en => {
-        if (hitCheck(p, en, angle, 65, Math.PI / 5)) {
-          en.hp -= 20; en.shake = 8;
-          if(!checkCollision(en.x + Math.cos(angle)*15, en.y, true)) en.x += Math.cos(angle) * 15; 
-          if(!checkCollision(en.x, en.y + Math.sin(angle)*15, true)) en.y += Math.sin(angle) * 15;
-          addTextParticle('[-20]', en.x, en.y - 15, '#ff4757');
-        }
+        if (hitCheck(p, en, angle, 65, Math.PI / 5)) { en.hp -= 20; en.shake = 8; if(!checkCollision(en.x + Math.cos(angle)*15, en.y, true)) en.x += Math.cos(angle) * 15; if(!checkCollision(en.x, en.y + Math.sin(angle)*15, true)) en.y += Math.sin(angle) * 15; addTextParticle('[-20]', en.x, en.y - 15, '#ff4757'); }
       });
       state.structures.forEach(s => {
-        if (Math.hypot(s.x - p.x, s.y - p.y) < 55) {
-          s.hp -= 5; s.shake = 8; addTextParticle('[-5]', s.x, s.y - 10, '#a4b0be');
-          if(s.hp <= 0) { explodeLetters(['ㅁ','ㅗ','ㄱ','ㅈ','ㅐ'], s.x, s.y, 'wood'); addTextParticle('[파괴됨]', s.x, s.y, '#e74c3c'); }
-        }
+        if (Math.hypot(s.x - p.x, s.y - p.y) < 55) { s.hp -= 5; s.shake = 8; addTextParticle('[-5]', s.x, s.y - 10, '#a4b0be'); if(s.hp <= 0) { explodeLetters(['ㅁ','ㅗ','ㄱ','ㅈ','ㅐ'], s.x, s.y, 'wood'); addTextParticle('[파괴됨]', s.x, s.y, '#e74c3c'); } }
       });
       state.structures = state.structures.filter(s => s.hp > 0);
-      if (state.boss && hitCheck(p, state.boss, angle, 90, Math.PI / 4)) { 
-        const b = state.boss; const dmg = b.state === 'stun' ? 45 : 20; b.hp -= dmg; b.shake = 10; addTextParticle(b.state === 'stun' ? `[💥기절 치명타! -${dmg}]` : `[-${dmg}]`, b.x, b.y - 25, '#ff4757');
-      }
+      if (state.boss && hitCheck(p, state.boss, angle, 90, Math.PI / 4)) { const b = state.boss; const dmg = b.state === 'stun' ? 45 : 20; b.hp -= dmg; b.shake = 10; addTextParticle(b.state === 'stun' ? `[💥기절 치명타! -${dmg}]` : `[-${dmg}]`, b.x, b.y - 25, '#ff4757'); }
     }
 
     function performAxeAttack() {
       const p = state.player; if (p.sta < 12) return; p.sta -= 12; state.axeAnim = 10; const angle = p.facingAngle;
-      const axeDmg = state.upgrades.axe ? 3 : 1.5; // 도끼 업그레이드 시 2배
-      
-      state.resources.forEach(r => {
-        if (hitCheck(p, r, angle, 60, Math.PI / 3)) { r.hp -= axeDmg; addTextParticle('[퍽!]', r.x, r.y - 10, '#f1c40f'); if (r.hp <= 0) explodeLetters(r.letters, r.x, r.y, r.type); }
-      });
+      const axeDmg = state.upgrades.axe ? 3 : 1.5;
+      state.resources.forEach(r => { if (hitCheck(p, r, angle, 60, Math.PI / 3)) { r.hp -= axeDmg; addTextParticle('[퍽!]', r.x, r.y - 10, '#f1c40f'); if (r.hp <= 0) explodeLetters(r.letters, r.x, r.y, r.type); } });
       state.resources = state.resources.filter(r => r.hp > 0);
-
       state.enemies.forEach(en => { if (hitCheck(p, en, angle, 55, Math.PI / 3)) { en.hp -= 10; en.shake = 8; addTextParticle('[-10]', en.x, en.y - 15, '#e67e22'); } });
       if (state.boss && hitCheck(p, state.boss, angle, 80, Math.PI / 3)) { state.boss.hp -= 10; state.boss.shake = 10; addTextParticle(`[-10]`, state.boss.x, state.boss.y - 25, '#e67e22'); }
     }
@@ -405,10 +374,19 @@
       p.isCharging = false; p.chargeTimer = 0;
     }
 
+    // ★ 번개 시각 효과 강화 ★
     function triggerLightning(x1, y1, x2, y2) {
-      flashScreen(); const points = [{ x: x1, y: y1 }];
-      for (let i = 1; i < 7; i++) points.push({ x: x1 + (x2 - x1) * (i/7) + (Math.random() - 0.5) * 60, y: y1 + (y2 - y1) * (i/7) + (Math.random() - 0.5) * 60 });
-      points.push({ x: x2, y: y2 }); state.lightnings.push({ points, life: 10 });
+      flashScreen();
+      // 번개를 3가닥으로 늘림
+      for(let k=0; k<3; k++) {
+        const points = [{ x: x1, y: y1 }];
+        for (let i = 1; i < 7; i++) {
+            points.push({ x: x1 + (x2 - x1) * (i/7) + (Math.random() - 0.5) * 80, y: y1 + (y2 - y1) * (i/7) + (Math.random() - 0.5) * 80 });
+        }
+        points.push({ x: x2, y: y2 });
+        state.lightnings.push({ points, life: 15 }); // 수명도 약간 늘림
+      }
+
       if (Math.hypot(state.player.x - x2, state.player.y - y2) < 70) {
         if (state.player.isGuarding && state.player.parryWindow > 0) { addTextParticle('[!! ⚡ 벼락 패링 ⚡ !!]', state.player.x, state.player.y - 25, '#f1c40f'); if (state.boss) { state.boss.state = 'stun'; state.boss.timer = 140; } } 
         else { state.player.hp -= 30; addTextParticle('[-30 감전!]', state.player.x, state.player.y - 20, '#00d2d3'); }
@@ -417,26 +395,26 @@
 
     function addTextParticle(text, x, y, color) { state.particles.push({ text, x, y, life: 35, color }); }
 
-    // --- 메인 틱 루프 ---
     function update() {
       if (state.gameOver || state.isUIOpen) return;
       const p = state.player; state.worldTime += 0.0006;
 
-      // 바이옴 판정
       let distFromCenter = Math.hypot(p.x - ALTAR_POS.x, p.y - ALTAR_POS.y);
+      let targetLerp = Math.max(0, Math.min(1, (distFromCenter - 700) / 200)); 
+      state.biomeLerp += (targetLerp - state.biomeLerp) * 0.02;
+
       let newBiome = distFromCenter > 800 ? 'blackforest' : 'meadow';
       if(state.currentBiome !== newBiome) {
         state.currentBiome = newBiome;
         let bt = document.getElementById('biome-text');
-        if(newBiome === 'blackforest') { bt.innerText = '🌲 검은 숲'; bt.style.color = '#7f8fa6'; }
+        if(newBiome === 'blackforest') { bt.innerText = '🌲 검은 숲'; bt.style.color = '#a4b0be'; }
         else { bt.innerText = '🌱 초원'; bt.style.color = '#2ed573'; }
-        bt.style.opacity = '1'; setTimeout(() => bt.style.opacity = '0.3', 2000);
+        bt.style.opacity = '1'; bt.style.transform = 'translate(-50%, 0) scale(1.1)';
+        clearTimeout(state.biomeTextTimeout);
+        state.biomeTextTimeout = setTimeout(() => { bt.style.opacity = '0'; bt.style.transform = 'translate(-50%, -20px) scale(1)'; }, 3000);
       }
 
-      state.clouds.forEach(c => {
-        c.x += c.vx; c.y += c.vy;
-        if(c.x > WORLD_SIZE + c.r) c.x = -c.r; if(c.y > WORLD_SIZE + c.r) c.y = -c.r;
-      });
+      state.clouds.forEach(c => { c.x += c.vx; c.y += c.vy; if(c.x > WORLD_SIZE + c.r) c.x = -c.r; if(c.y > WORLD_SIZE + c.r) c.y = -c.r; });
 
       p.isNearFire = state.structures.some(s => s.part.id === 'fire' && Math.hypot(p.x - s.x, p.y - s.y) < 140);
 
@@ -445,7 +423,7 @@
 
       if (dx !== 0 || dy !== 0) {
         const len = Math.hypot(dx, dy); let curSpeed = p.speed;
-        if (state.keys['shift'] && p.sta > 0) { curSpeed *= 1.6; p.sta = Math.max(0, p.sta - 0.2); }
+        if (state.keys['shift'] && p.sta > 0) { curSpeed *= 1.5; p.sta = Math.max(0, p.sta - 0.2); }
         if (p.isCharging) curSpeed *= 0.4;
         let nextX = p.x + (dx / len) * curSpeed; let nextY = p.y + (dy / len) * curSpeed;
         if (!checkCollision(nextX, p.y, false)) p.x = nextX;
@@ -468,14 +446,13 @@
         }
       }
 
-      // 선공 AI (Aggro)
       state.enemies.forEach(en => {
         if (en.hp <= 0) return; 
         let distToPlayer = Math.hypot(p.x - en.x, p.y - en.y);
         
-        if (distToPlayer < 200 && !state.buildMode) { // 선공 반경 200
+        if (distToPlayer < 120 && !state.buildMode) { 
           let angle = Math.atan2(p.y - en.y, p.x - en.x);
-          let spd = en.type === 'goblin' ? 1.6 : 1.1; // 고블린이 더 빠름
+          let spd = en.type === 'goblin' ? 0.75 : 0.55; 
           en.vx = Math.cos(angle) * spd; en.vy = Math.sin(angle) * spd;
 
           en.atkCool = (en.atkCool || 0) - 1;
@@ -484,20 +461,16 @@
             if (p.isGuarding && p.parryWindow > 0) {
               addTextParticle('[!! 패링 !!]', p.x, p.y - 20, '#f1c40f');
               en.shake = 15; en.atkCool = 100;
-            } else {
-              p.hp -= dmg; addTextParticle(`[-${dmg}]`, p.x, p.y - 15, '#ff4757');
-              en.atkCool = 80;
-            }
+            } else { p.hp -= dmg; addTextParticle(`[-${dmg}]`, p.x, p.y - 15, '#ff4757'); en.atkCool = 80; }
           }
-        } else { // 평화 배회
+        } else { 
           en.roamTimer--;
-          if (en.roamTimer <= 0) { en.roamTimer = 60 + Math.random() * 90; const a = Math.random() * Math.PI * 2; en.vx = Math.cos(a) * 0.5; en.vy = Math.sin(a) * 0.5; }
+          if (en.roamTimer <= 0) { en.roamTimer = 60 + Math.random() * 90; const a = Math.random() * Math.PI * 2; en.vx = Math.cos(a) * 0.4; en.vy = Math.sin(a) * 0.4; }
         }
         if (!checkCollision(en.x + en.vx, en.y, true)) en.x += en.vx;
         if (!checkCollision(en.x, en.y + en.vy, true)) en.y += en.vy;
       });
 
-      // 파편 자석
       for (let i = state.letterPickups.length - 1; i >= 0; i--) {
         const lp = state.letterPickups[i]; lp.x += lp.vx; lp.y += lp.vy; lp.vx *= 0.88; lp.vy *= 0.88;
         if (lp.delayPickup > 0) lp.delayPickup--;
@@ -530,8 +503,7 @@
           if(en.drop === 'trophy') state.inventory.trophy++; 
           if(en.drop === 'stone') state.inventory.stone += 2;
           explodeLetters(en.letters, en.x, en.y, en.type); 
-          addTextParticle(`[${en.drop === 'trophy' ? '트로피' : '석재'} 획득!]`, en.x, en.y - 30, '#f1c40f'); 
-          en.drop = null; 
+          addTextParticle(`[${en.drop === 'trophy' ? '트로피' : '석재'} 획득!]`, en.x, en.y - 30, '#f1c40f'); en.drop = null; 
         } 
       });
 
@@ -572,25 +544,21 @@
       document.getElementById('hp-bar').style.width = `${Math.max(0, (p.hp / p.maxHp) * 100)}%`; document.getElementById('hp-text').innerText = `${Math.max(0, Math.floor(p.hp))}/${p.maxHp}`;
       document.getElementById('sta-bar').style.width = `${(p.sta / p.maxSta) * 100}%`;
       document.getElementById('trophy-count').innerText = state.inventory.trophy; document.getElementById('wood-count').innerText = state.inventory.wood; document.getElementById('stone-count').innerText = state.inventory.stone;
-      const isNight = Math.sin(state.worldTime) < -0.2; document.getElementById('time-text').innerText = isNight ? '🌙 밤 (어둠)' : '☀️ 낮';
+      const isNight = Math.sin(state.worldTime) < -0.2; document.getElementById('time-text').innerText = isNight ? '🌙 밤 (어둠)' : '☀️ 화창한 낮';
       
       draw(p.x - canvas.width / 2, p.y - canvas.height / 2); requestAnimationFrame(update);
     }
 
-    // 🚀 컬링 최적화
     function isVisible(x, y, camX, camY, padding = 150) { return x > camX - padding && x < camX + canvas.width + padding && y > camY - padding && y < camY + canvas.height + padding; }
 
     function draw(camX, camY) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // 다이내믹 바이옴 배경
+      const cR1 = 46 + (19 - 46) * state.biomeLerp; const cG1 = 93 + (31 - 93) * state.biomeLerp; const cB1 = 50 + (36 - 50) * state.biomeLerp;
+      const cR2 = 27 + (8 - 27) * state.biomeLerp; const cG2 = 59 + (13 - 59) * state.biomeLerp; const cB2 = 31 + (16 - 31) * state.biomeLerp;
       const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, canvas.width);
-      if(state.currentBiome === 'meadow') {
-        grad.addColorStop(0, '#2e5d32'); grad.addColorStop(1, '#1b3b1f');
-      } else { // 검은 숲
-        grad.addColorStop(0, '#131f24'); grad.addColorStop(1, '#080d10');
-      }
+      grad.addColorStop(0, `rgb(${cR1},${cG1},${cB1})`); grad.addColorStop(1, `rgb(${cR2},${cG2},${cB2})`);
       ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
       ctx.save(); ctx.translate(-camX, -camY);
 
       state.decorations.forEach(d => { if(isVisible(d.x, d.y, camX, camY, 50)) { ctx.fillStyle = d.color; ctx.font = '14px sans-serif'; ctx.fillText(d.text, d.x, d.y); } });
@@ -609,7 +577,20 @@
       state.enemies.forEach(en => { if (en.hp > 0 && isVisible(en.x, en.y, camX, camY)) { ctx.fillStyle = en.type === 'goblin' ? '#27ae60' : '#ff7675'; ctx.font = 'bold 14px sans-serif'; let ox = en.shake > 0 ? (Math.random() - 0.5) * 6 : 0; ctx.fillText(`${en.text} [${en.hp}]`, en.x + ox, en.y); } });
 
       if (state.boss && state.boss.hp > 0 && isVisible(state.boss.x, state.boss.y, camX, camY, 200)) { const b = state.boss; ctx.fillStyle = b.state === 'stun' ? '#f1c40f' : '#ff4757'; ctx.font = 'bold 24px sans-serif'; let ox = b.shake > 0 ? (Math.random() - 0.5) * 8 : 0; ctx.fillText(b.state === 'stun' ? '[💫기절!💫]' : b.name, b.x + ox, b.y); }
-      for (let i = state.lightnings.length - 1; i >= 0; i--) { const l = state.lightnings[i]; ctx.beginPath(); ctx.moveTo(l.points[0].x, l.points[0].y); for (let j = 1; j < l.points.length; j++) ctx.lineTo(l.points[j].x, l.points[j].y); ctx.strokeStyle = '#00d2d3'; ctx.lineWidth = 4; ctx.stroke(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke(); l.life--; if (l.life <= 0) state.lightnings.splice(i, 1); }
+      
+      // ★ 번개 렌더링 시 잔상 적용 ★
+      for (let i = state.lightnings.length - 1; i >= 0; i--) { 
+        const l = state.lightnings[i]; 
+        ctx.beginPath(); ctx.moveTo(l.points[0].x, l.points[0].y); 
+        for (let j = 1; j < l.points.length; j++) ctx.lineTo(l.points[j].x, l.points[j].y); 
+        
+        const alpha = l.life / 15;
+        ctx.strokeStyle = `rgba(0, 210, 211, ${alpha})`; ctx.lineWidth = 5; ctx.stroke(); 
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`; ctx.lineWidth = 2; ctx.stroke(); 
+        
+        l.life--; if (l.life <= 0) state.lightnings.splice(i, 1); 
+      }
+      
       ctx.fillStyle = '#ffffff'; ctx.font = '12px sans-serif'; state.arrows.forEach(arr => { if(isVisible(arr.x, arr.y, camX, camY)) { ctx.save(); ctx.translate(arr.x, arr.y); ctx.rotate(arr.angle); ctx.fillText(arr.isCrit ? '──▶▶' : '──▶', 0, 4); ctx.restore(); } });
 
       const p = state.player;
